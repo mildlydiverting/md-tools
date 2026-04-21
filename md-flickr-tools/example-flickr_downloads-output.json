@@ -1,0 +1,34 @@
+{
+  // ******** about the image
+  "photo_id": "55186319833",
+  "title": "Artemis II Launch (NHQ202604010115) (explored)",
+  "accessed_url": "https://www.flickr.com/photos/35067687@N04/55186319833" // was "flickr_url": the permalink / doi page which holds the image file.
+  "src_url": "https://live.staticflickr.com/65535/55186319833_165b4b7852_3k.jpg", // url of the actual image we grabbed, not the same as the page url)
+  "size_label": "X-Large 3K",
+  "date_created": "2026-04-01", // for flickr, this is date taken "Taken on April 1, 2026"
+  "date_posted": "2026-04-01", // should be date posted - "Uploaded on April 4, 2026"
+  "date_accessed": "2026-04-21T12:11:53.614686Z", // was "downloaded_at":
+  "medium": "Photograph", // for flickr this is fixed, but may be different for eg the Met, Tate etc.
+  // ******** Extended data. and info
+  "description": "NASA’s Space Launch System rocket carrying the Orion spacecraft with NASA astronauts Reid Wiseman, commander; Victor Glover, pilot; Christina Koch, mission specialist; and CSA (Canadian Space Agency) astronaut Jeremy Hansen, mission specialist onboard launches on the Artemis II mission, Wednesday, April 1, 2026, from Launch Complex 39B at NASA’s Kennedy Space Center in Florida. NASA’s Artemis II mission will take Wiseman, Glover, Koch, and Hansen on a 10-day journey around the Moon and back aboard their Orion spacecraft. The quartet launched at 6:35 p.m. EDT, from Launch Complex 39B at the Kennedy Space Center. Photo Credit: (NASA/Keegan Barber)", // are we sanitising this in any way? what if links / html returned?
+  "tags": "spacelaunchsystemsls kennedyspacecenter artemisii artemis capecanaveral florida orion launchcomplex39b artemisiilaunch fl nasa keeganbarber", // are we OK with this as just a list with spaces? Should it be an array of some kind, for ease of processing later?
+  "occurrences": [
+    {
+      "type": "favourite"
+    }
+  ],
+  // ********  about the author / creator / account
+  "creator": "NASA HQ PHOTO",
+  "creator_profile_url": "https://www.flickr.com/photos/35067687@N04/", // this would be a profile page link on other social sites, harder to think about for eg an historic artists, we're in to LOD/wikidata territory
+  "institution": null, // would this be 'Flickr' in this case?
+  "institution_location": null,
+  "website": "Flickr",  // feel  like this is the institution here! But do we need the institution_url ?
+  // ******** rights license 
+  "license_id": "8",
+  "license_name": "United States Government Work",
+  "license_url": "http://www.usa.gov/copyright.shtml",
+  "copyright_line": null,
+  // ******** citation formats for easy copying
+  "citation_markdown": "NASA HQ PHOTO (2026). _Artemis II Launch_. [Photograph]. Available at [{accessed_url}]({accessed_url}) (Accessed 21 Apr 2026). Licensed under [United States Government Work](http://www.usa.gov/copyright.shtml).",
+  "tasl": "[Artemis II Launch]({accessed_url}) — [NASA HQ PHOTO]({creator_profile_url}) — [United States Government Work](http://www.usa.gov/copyright.shtml)"
+}
