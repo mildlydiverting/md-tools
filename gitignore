@@ -1,0 +1,40 @@
+# ─── macOS ───────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+bin/
+lib/
+include/
+pyvenv.cfg
+
+# ─── Flickr auth token (contains your credentials) ───────────────────────────
+.flickr/
+
+# ─── Downloaded content (likely too large for a repo) ────────────────────────
+flickr_downloads/
+
+# ─── Your API credentials if you ever break them out into a file ─────────────
+.env
+secrets.py
+config.local.py
+
+# ─── Editors ─────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

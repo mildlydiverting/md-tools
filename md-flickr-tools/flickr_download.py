@@ -73,6 +73,15 @@ FLICKR_LICENSES = {
     "10": ("Public Domain Mark 1.0",            "https://creativecommons.org/publicdomain/mark/1.0/"),
 }
 
+# Flickr takengranularity values
+# https://www.flickr.com/services/api/misc.dates.html
+DATE_GRANULARITY = {
+    0: "Exact datetime (local time, timezone unknown)",
+    4: "Approximate: year only",
+    6: "Approximate: month only",
+    8: "Approximate: day only",
+}
+
 # Tags that suggest non-photographic medium
 MEDIUM_HINTS = {
     "illustration":        "Illustration",
@@ -357,21 +366,27 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
 
     # ── Dates ──────────────────────────────────────────────────────────────
 
-    date_created = None
-    date_posted  = None
-    year         = None
+    date_created             = None
+    date_created_granularity = None
+    date_created_note        = None
+    date_posted              = None
+    year                     = None
 
     if info:
-        dates     = info.get('dates', {})
-        raw_taken = dates.get('taken')   # "2026-04-01 18:35:00"
-        raw_posted = dates.get('posted') # Unix timestamp string
+        dates           = info.get('dates', {})
+        raw_taken       = dates.get('taken')        # "2004-11-19 12:51:19" local time
+        raw_posted      = dates.get('posted')       # Unix timestamp string (UTC)
+        granularity_raw = dates.get('takengranularity')
 
         if raw_taken:
-            date_created = raw_taken[:10]  # "yyyy-mm-dd"
-            year         = raw_taken[:4]
+            date_created             = raw_taken[:10]  # "yyyy-mm-dd"
+            year                     = raw_taken[:4]
+            date_created_granularity = int(granularity_raw) if granularity_raw is not None else 0
+            date_created_note        = DATE_GRANULARITY.get(date_created_granularity,
+                                           f"Unknown granularity ({date_created_granularity})")
 
         if raw_posted:
-            # Note: Flickr returns posted as UTC Unix timestamp
+            # posted is UTC Unix timestamp
             dt_posted   = datetime.datetime.utcfromtimestamp(int(raw_posted))
             date_posted = dt_posted.strftime('%Y-%m-%d')
             if not year:
@@ -382,7 +397,7 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
 
     # ── License ────────────────────────────────────────────────────────────
 
-    license_id              = str(info.get('license', '0')) if info else '0'
+    license_id                = str(info.get('license', '0')) if info else '0'
     license_name, license_url = FLICKR_LICENSES.get(license_id, ("All Rights Reserved", None))
 
     # ── Creator ────────────────────────────────────────────────────────────
@@ -393,14 +408,13 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
     owner_nsid  = owner_obj.get('nsid') or photo.get('owner', '')
     creator_url = f"https://www.flickr.com/photos/{owner_nsid}/" if owner_nsid else None
 
-    # ── Description (kept as raw HTML; label the format) ───────────────────
+    # ── Description (kept as raw HTML; labelled below) ─────────────────────
 
     description = photo.get('description', '')
     if isinstance(description, dict):
         description = description.get('_content', '')
     if not description and info:
         description = info.get('description', {}).get('_content', '')
-    # Flickr descriptions may contain HTML — stored as-is, labelled below
 
     # ── Tags → array ───────────────────────────────────────────────────────
 
@@ -455,40 +469,42 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
 
     metadata = {
         # About the image
-        "photo_id":             photo_id,
-        "title":                title,
-        "accessed_url":         accessed_url,
-        "src_url":              src_url,
-        "size_label":           size_label,
-        "date_created":         date_created,
-        "date_posted":          date_posted,
-        "date_accessed":        date_accessed,
-        "medium":               medium,
+        "photo_id":                    photo_id,
+        "title":                       title,
+        "accessed_url":                accessed_url,
+        "src_url":                     src_url,
+        "size_label":                  size_label,
+        "date_created":                date_created,
+        "date_created_granularity":    date_created_granularity,
+        "date_created_note":           date_created_note,
+        "date_posted":                 date_posted,
+        "date_accessed":               date_accessed,
+        "medium":                      medium,
 
         # Extended data
-        "description":          description,
-        "description_format":   "html",
-        "tags":                 tags,
-        "occurrences":          entry['occurrences'],
-        "location":             location,
+        "description":                 description,
+        "description_format":          "html",
+        "tags":                        tags,
+        "occurrences":                 entry['occurrences'],
+        "location":                    location,
 
         # About the creator
-        "creator":              creator,
-        "creator_profile_url":  creator_url,
-        "institution":          None,
-        "institution_location": None,
-        "website":              "Flickr",
-        "website_url":          "https://www.flickr.com",
+        "creator":                     creator,
+        "creator_profile_url":         creator_url,
+        "institution":                 None,
+        "institution_location":        None,
+        "website":                     "Flickr",
+        "website_url":                 "https://www.flickr.com",
 
         # Rights
-        "license_id":           license_id,
-        "license_name":         license_name,
-        "license_url":          license_url,
-        "copyright_line":       copyright_line,
+        "license_id":                  license_id,
+        "license_name":                license_name,
+        "license_url":                 license_url,
+        "copyright_line":              copyright_line,
 
         # Citations
-        "citation_markdown":    citation_markdown,
-        "tasl":                 tasl,
+        "citation_markdown":           citation_markdown,
+        "tasl":                        tasl,
     }
 
     with open(json_path, 'w', encoding='utf-8') as f:
