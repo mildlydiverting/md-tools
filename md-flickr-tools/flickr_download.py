@@ -76,10 +76,10 @@ FLICKR_LICENSES = {
 # Flickr takengranularity values
 # https://www.flickr.com/services/api/misc.dates.html
 DATE_GRANULARITY = {
-    0: "Exact datetime (local time, timezone unknown)",
-    4: "Approximate: year only",
-    6: "Approximate: month only",
-    8: "Approximate: day only",
+    0: "Exact datetime (owner's local timezone — do not convert)",
+    4: "Approximate: month precision (Y-m)",
+    6: "Approximate: year precision (Y)",
+    8: "Circa",
 }
 
 # Tags that suggest non-photographic medium
@@ -387,12 +387,12 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
 
         if raw_posted:
             # posted is UTC Unix timestamp
-            dt_posted   = datetime.datetime.utcfromtimestamp(int(raw_posted))
+            dt_posted   = datetime.datetime.fromtimestamp(int(raw_posted), datetime.UTC)
             date_posted = dt_posted.strftime('%Y-%m-%d')
             if not year:
                 year = date_posted[:4]
 
-    date_accessed = datetime.datetime.utcnow().isoformat() + 'Z'
+    date_accessed = datetime.datetime.now(datetime.UTC).isoformat().replace('+00:00', 'Z')
     access_date   = format_access_date(date_accessed)
 
     # ── License ────────────────────────────────────────────────────────────
