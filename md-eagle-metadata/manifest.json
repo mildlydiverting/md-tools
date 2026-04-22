@@ -1,0 +1,15 @@
+{
+    "id": "0edc13f2-8834-40c7-9260-a120ce66d049",
+    "version": "1.0.0",
+    "platform": "all",
+    "arch": "all",
+    "name": "md-eagle-metadata",
+    "logo": "/logo.png",
+    "keywords": [],
+    "devTools": false,
+    "main": {
+        "url": "index.html",
+        "width": 640,
+        "height": 480
+    }
+}
