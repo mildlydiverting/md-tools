@@ -6,7 +6,7 @@ Reads from stdin (preferred) or first argument.
 
 Input handling:
   - Lines already formatted (start with tab + dash): inserted as-is
-  - Raw text lines: wrapped as a new task with @date and @source(alfred)
+  - Raw text lines: wrapped as a bare task with @date
   - Blank lines: skipped
 
 Usage (Alfred — pipe via stdin):
@@ -14,7 +14,7 @@ Usage (Alfred — pipe via stdin):
 
 Usage (direct):
     python3 inbox.py "Buy more charcoal"
-    echo "- Pre-formatted line @date(2026-04-20)" | python3 inbox.py
+    echo "	- Pre-formatted line @date(2026-04-22)" | python3 inbox.py
 """
 
 import sys
@@ -27,7 +27,7 @@ INBOX_HEADING = "_INBOX:"
 
 def format_raw(text: str) -> str:
     today = date.today().isoformat()
-    return f"\t- {text.strip()} @date({today}) @source(alfred)"
+    return f"\t- {text.strip()} @date({today})"
 
 
 def prepare_lines(raw_input: str) -> list[str]:
