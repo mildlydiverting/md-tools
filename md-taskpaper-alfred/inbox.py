@@ -2,27 +2,40 @@
 """
 inbox.py — insert one or more entries into _INBOX: in a TaskPaper file.
 
-Reads from stdin (preferred) or first argument.
+Accepts text as a positional argument or via stdin.
 
 Input handling:
   - Lines already formatted (start with tab + dash): inserted as-is
   - Raw text lines: wrapped as a bare task with @date
   - Blank lines: skipped
+  - If heading not found: prepended to top of file
 
-Usage (Alfred — pipe via stdin):
+Usage (terminal):
+    python3 inbox.py "Buy more charcoal"
+    echo "some text" | python3 inbox.py
+
+Usage (Alfred — zsh, pipe via stdin):
+    query=$1
     echo "$1" | python3 /path/to/inbox.py
 
-Usage (direct):
-    python3 inbox.py "Buy more charcoal"
-    echo "	- Pre-formatted line @date(2026-04-22)" | python3 inbox.py
+File path: hardcoded default is ~/Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper or pass --file to override. (also passed from Alfred var:targetfile)
+
+Inbox heading: defaults to _INBOX:, or set via environment variable 'inbox'.
+
+Alfred Variables are
+{var:targetfile}
+{var:inbox}
+
 """
 
+import argparse
+import os
 import sys
 from datetime import date
 from pathlib import Path
 
-FILE = Path.home() / "Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper"
-INBOX_HEADING = "_INBOX:"
+DEFAULT_FILE = Path(os.environ.get("targetfile", str(Path.home() / "Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper")))
+INBOX_HEADING = os.environ.get("inbox", "_INBOX:")
 
 
 def format_raw(text: str) -> str:
@@ -57,12 +70,21 @@ def insert_into_inbox(filepath: Path, entries: list[str]) -> None:
                 print(f"Added: {entry.strip()}")
             return
 
-    sys.exit(f"Could not find '{INBOX_HEADING}' in file.")
+    # Heading not found — prepend it with entries beneath it
+    new_lines = [INBOX_HEADING + "\n"] + [e.rstrip("\n") + "\n" for e in entries]
+    filepath.write_text("".join(new_lines + lines), encoding="utf-8")
+    for entry in entries:
+        print(f"Added (new inbox created): {entry.strip()}")
 
 
 def main():
-    if len(sys.argv) > 1:
-        raw = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Append a task to a TaskPaper inbox.")
+    parser.add_argument("text", nargs="?", help="Task text (or pipe via stdin)")
+    parser.add_argument("--file", type=Path, default=DEFAULT_FILE, help="Path to TaskPaper file")
+    args = parser.parse_args()
+
+    if args.text:
+        raw = args.text
     else:
         raw = sys.stdin.read()
 
@@ -73,7 +95,7 @@ def main():
     if not entries:
         sys.exit("No valid entries found.")
 
-    insert_into_inbox(FILE, entries)
+    insert_into_inbox(args.file, entries)
 
 
 if __name__ == "__main__":

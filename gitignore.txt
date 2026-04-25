@@ -25,8 +25,9 @@ pyvenv.cfg
 # ─── Flickr auth token (contains your credentials) ───────────────────────────
 .flickr/
 
-# ─── Downloaded content (likely too large for a repo) ────────────────────────
+# ─── Downloaded content and assets (likely too large for a repo) ────────────────────────
 flickr_downloads/
+_assets/
 
 # ─── Your API credentials if you ever break them out into a file ─────────────
 .env
