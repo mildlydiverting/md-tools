@@ -95,8 +95,13 @@ function run(argv) {
 
     // ── 5. Return JSON ─────────────────────────────────────────────────────
     return JSON.stringify({
-        url:           info.url,
-        title:         info.title,
-        selected_text: selectedText
+    alfredworkflow: {
+        arg: info.url,
+        variables: {
+            url:           info.url,
+            title:         info.title,
+            selected_text: selectedText
+            }
+        }
     })
 }

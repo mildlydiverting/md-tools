@@ -117,9 +117,10 @@ if [[ $REPLY == "y" ]]; then
 import json, sys
 try:
     data = json.loads('''$JXA_OUTPUT''')
-    print('URL:          ', data.get('url', '(empty)'))
-    print('Title:        ', data.get('title', '(empty)'))
-    st = data.get('selected_text', '')
+    v = data.get('alfredworkflow', {}).get('variables', {})
+    print('URL:          ', v.get('url', '(empty)'))
+    print('Title:        ', v.get('title', '(empty)'))
+    st = v.get('selected_text', '')
     print('Selected text:', st[:60] + ('…' if len(st) > 60 else '') if st else '(none)')
 except Exception as e:
     print('JSON parse error:', e)
