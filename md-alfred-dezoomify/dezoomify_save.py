@@ -151,17 +151,9 @@ def parse_title_components(title: str) -> list[str]:
 
 
 def build_dezoomify_cmd(url: str, output_path: Path, max_megapixels_str: str) -> list[str]:
-    """Build the dezoomify-rs command, optionally adding size limits.
-
-    max_megapixels translates to --max-width and --max-height, both set to
-    sqrt(MP × 1_000_000). This assumes roughly square images; dezoomify-rs
-    will honour whichever axis is hit first and scale the other proportionally.
-
-    Verify flag names with: dezoomify-rs --help
-    (confirmed correct for dezoomify-rs ≥ 2.x)
-    """
-    cmd = [DEZOOMIFY_BIN,
-           '--zoom-level', '0']   # always pick highest resolution; avoids interactive prompt
+    """-l selects the largest available zoom level automatically, avoiding the
+    interactive prompt. max_megapixels adds --max-width/--max-height caps."""
+    cmd = [DEZOOMIFY_BIN, '-l']   # -l = select largest; no interactive prompt
 
     if max_megapixels_str:
         try:
@@ -170,10 +162,64 @@ def build_dezoomify_cmd(url: str, output_path: Path, max_megapixels_str: str) ->
                 max_side = int(math.sqrt(max_mp * 1_000_000))
                 cmd += ['--max-width', str(max_side), '--max-height', str(max_side)]
         except ValueError:
-            pass  # invalid config value — ignore and download at full resolution
+            pass
 
     cmd += [url, str(output_path)]
     return cmd
+
+
+def parse_artwork_filename(page_title: str, selected_text: str, url: str) -> str:
+    """Derive a sensible filename suggestion from available metadata.
+
+    Priority:
+    1. Structured fields in selected text ("Title: X", "Creator: X") → "Artist — Title"
+    2. First line of selected text if short (< 100 chars)
+    3. First component of page title (before first separator)
+    4. Fallback: domain + datetime → "artsandculture_2026-05-02_1430"
+    """
+    from urllib.parse import urlparse
+
+    # ── 1. Structured fields in selected text ─────────────────────────────
+    if selected_text:
+        lines = [l.strip() for l in selected_text.replace('\r', '\n').splitlines()]
+        fields = {}
+        for line in lines:
+            for key in ('Title', 'Creator', 'Artist', 'Author'):
+                if line.lower().startswith(key.lower() + ':'):
+                    val = line.split(':', 1)[1].strip()
+                    if val:
+                        fields[key.lower()] = val
+                        break
+
+        title  = fields.get('title')
+        artist = fields.get('creator') or fields.get('artist') or fields.get('author')
+
+        if title and artist:
+            return f'{artist} — {title}'
+        if title:
+            return title
+
+    # ── 2. First line of selected text if short ───────────────────────────
+    if selected_text:
+        first_line = selected_text.replace('\r', '\n').splitlines()[0].strip()
+        if first_line and len(first_line) < 100:
+            return first_line
+
+    # ── 3. First component of page title ─────────────────────────────────
+    if page_title:
+        for sep in [' | ', ' — ', ' – ', ' - ', ' : ']:
+            parts = page_title.split(sep)
+            if len(parts) > 1:
+                return parts[0].strip()
+        return page_title.strip()
+
+    # ── 4. Domain + datetime fallback ─────────────────────────────────────
+    try:
+        domain = urlparse(url).netloc.replace('www.', '').split('.')[0]
+    except Exception:
+        domain = 'dezoomify'
+    dt = datetime.datetime.now().strftime('%Y-%m-%d_%H%M')
+    return f'{domain}_{dt}' 
 
 
 def write_metadata(image_path: Path, dezoomify_version: str) -> Path:
@@ -257,16 +303,7 @@ def main():
     dezoomify_version = get_dezoomify_version(DEZOOMIFY_BIN)
 
     # ── Suggest a filename ─────────────────────────────────────────────────
-    # Short selected text (< 100 chars, single line) makes a better title
-    # than a generic page title. Fall back to page title, then a default.
-    if SELECTED_TEXT and len(SELECTED_TEXT) < 100 and '\n' not in SELECTED_TEXT:
-        raw_suggestion = SELECTED_TEXT
-    elif PAGE_TITLE:
-        raw_suggestion = PAGE_TITLE
-    else:
-        raw_suggestion = 'dezoomify_image'
-
-    suggested = sanitise_filename(raw_suggestion)
+    suggested = sanitise_filename(parse_artwork_filename(PAGE_TITLE, SELECTED_TEXT, URL))
 
     # ── Ask user to confirm / edit ─────────────────────────────────────────
     filename = ask_filename(suggested)
