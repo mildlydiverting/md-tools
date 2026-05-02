@@ -160,7 +160,8 @@ def build_dezoomify_cmd(url: str, output_path: Path, max_megapixels_str: str) ->
     Verify flag names with: dezoomify-rs --help
     (confirmed correct for dezoomify-rs ≥ 2.x)
     """
-    cmd = [DEZOOMIFY_BIN]
+    cmd = [DEZOOMIFY_BIN,
+           '--zoom-level', '0']   # always pick highest resolution; avoids interactive prompt
 
     if max_megapixels_str:
         try:
@@ -288,6 +289,7 @@ def main():
             cmd,
             capture_output=True,
             text=True,
+            stdin=subprocess.DEVNULL,  # prevent hanging on interactive prompts
             timeout=180  # 3 min — high-res tiles can take a while
         )
     except subprocess.TimeoutExpired:
