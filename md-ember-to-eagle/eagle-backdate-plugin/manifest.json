@@ -1,0 +1,12 @@
+{
+  "id": "com.mdtools.ember-backdate",
+  "version": "1.0.0",
+  "name": "Ember Import Backdater",
+  "logo": "",
+  "keywords": ["ember", "import", "backdate"],
+  "description": "Restores original capture dates on items imported from LittleSnapper/Ember .embersnap packages.",
+  "devTools": false,
+  "main": "index.html",
+  "width": 480,
+  "height": 320
+}

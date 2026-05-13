@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ember Import Backdater</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    h2 { font-size: 15px; font-weight: 600; color: #fff; }
+    p { line-height: 1.5; color: #999; }
+    code { background: #2d2d2d; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+    label { display: block; margin-bottom: 4px; color: #bbb; }
+    input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      background: #2d2d2d;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #d4d4d4;
+      font-size: 13px;
+    }
+    input[type="text"]:focus { outline: none; border-color: #666; }
+    button {
+      padding: 7px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #0078d4;
+      color: #fff;
+    }
+    button:disabled { background: #444; color: #777; cursor: default; }
+    #log {
+      flex: 1;
+      overflow-y: auto;
+      background: #141414;
+      border-radius: 4px;
+      padding: 8px;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .ok  { color: #6a9955; }
+    .err { color: #f44747; }
+    .inf { color: #569cd6; }
+    #env { font-size: 10px; color: #555; margin-top: auto; }
+  </style>
+</head>
+<body>
+  <h2>Ember Import Backdater</h2>
+  <p>Paste the full path to <code>eagle_import_log.json</code> from the Python import script.</p>
+
+  <div>
+    <label for="logPath">Import log path</label>
+    <input type="text" id="logPath" placeholder="/path/to/eagle_import_log.json" />
+  </div>
+
+  <button id="runBtn" onclick="run()">Run Backdating</button>
+
+  <div id="log">Ready.</div>
+  <div id="env"></div>
+
+  <script>
+    // Show environment info so we can debug if needed
+    const envDiv = document.getElementById('env');
+    try {
+      const hasEagle = typeof eagle !== 'undefined';
+      const hasRequire = typeof require !== 'undefined';
+      envDiv.textContent = `eagle=${hasEagle} require=${hasRequire} nodeIntegration=${hasRequire}`;
+    } catch(e) {
+      envDiv.textContent = 'env check failed: ' + e.message;
+    }
+
+    const logEl = document.getElementById('log');
+    const btn   = document.getElementById('runBtn');
+
+    function append(text, cls) {
+      const span = document.createElement('span');
+      if (cls) span.className = cls;
+      span.textContent = text + '\n';
+      logEl.appendChild(span);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function readLogFile(path) {
+      // Try Node fs first (available when Eagle enables nodeIntegration)
+      try {
+        const fs = require('fs');
+        return fs.readFileSync(path, 'utf8');
+      } catch (e1) {
+        // Fall back to eagle.extraModule if available
+        try {
+          return eagle.extraModule.fs.readFileSync(path, 'utf8');
+        } catch (e2) {
+          throw new Error(`Cannot read file — Node fs: ${e1.message} | eagle.extraModule: ${e2.message}`);
+        }
+      }
+    }
+
+    async function run() {
+      const logPath = document.getElementById('logPath').value.trim();
+      if (!logPath) { append('Please enter a log file path.', 'err'); return; }
+
+      btn.disabled = true;
+      logEl.textContent = '';
+
+      let entries;
+      try {
+        const raw = readLogFile(logPath);
+        entries = JSON.parse(raw);
+      } catch (e) {
+        append('Failed to read log file: ' + e.message, 'err');
+        btn.disabled = false;
+        return;
+      }
+
+      append(`Loaded ${entries.length} entries from log.`, 'inf');
+
+      let ok = 0, fail = 0, skip = 0;
+
+      for (const entry of entries) {
+        if (!entry.eagle_id) {
+          append(`  skip  ${entry.name} — no Eagle ID`, 'err');
+          skip++; continue;
+        }
+        if (!entry.snap_date_ms) {
+          append(`  skip  ${entry.name} — no timestamp`, 'err');
+          skip++; continue;
+        }
+        try {
+          const item = await eagle.item.getById(entry.eagle_id);
+          if (!item) {
+            append(`  miss  ${entry.name} (${entry.eagle_id}) — not found`, 'err');
+            fail++; continue;
+          }
+          item.importedAt = entry.snap_date_ms;
+          await item.save();
+          append(`  ok    ${entry.name} → ${new Date(entry.snap_date_ms).toISOString()}`, 'ok');
+          ok++;
+        } catch (e) {
+          append(`  fail  ${entry.name}: ${e.message}`, 'err');
+          fail++;
+        }
+      }
+
+      append(`\nDone. ${ok} backdated, ${fail} failed, ${skip} skipped.`, 'inf');
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
