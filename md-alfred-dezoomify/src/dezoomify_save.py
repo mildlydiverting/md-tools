@@ -287,10 +287,43 @@ def write_metadata(image_path: Path, dezoomify_version: str, actual_url: str = '
 
 def alert(message: str):
     """Show a simple macOS alert (used for errors that need user attention)."""
+    safe = message.replace('\\', '\\\\').replace('"', '\\"')
     subprocess.run(
-        ['osascript', '-e', f'display alert "Dezoomify Grab" message "{message}"'],
+        ['osascript', '-e', f'display alert "Dezoomify Grab" message "{safe}"'],
         capture_output=True
     )
+
+
+def _log(msg: str):
+    """Log to stderr. Visible in Terminal and Alfred's debug log, but not
+    in the notification output (which reads stdout)."""
+    print(f'[dezoomify] {msg}', file=sys.stderr, flush=True)
+
+
+def ask_manual_url() -> str | None:
+    """Last resort: ask the user to paste a tile URL from their browser's
+    network inspector. Returns the URL string, or None if cancelled."""
+    script = (
+        'display dialog '
+        '"Automatic detection failed.\\n\\n'
+        'Open the browser Network Inspector, zoom into the image, '
+        'and look for tile requests containing server.iip, info.json, '
+        'or ImageProperties.xml.\\n\\n'
+        'Paste a tile URL below:" '
+        'default answer "" '
+        'with title "Dezoomify Grab" '
+        'buttons {"Cancel", "Try URL"} '
+        'default button "Try URL"'
+    )
+    result = subprocess.run(
+        ['osascript', '-e', script],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return None
+    match = re.search(r'text returned:(.+)', result.stdout.strip())
+    url = match.group(1).strip() if match else ''
+    return url if url else None
 
 
 # ── HTML scraping fallback ─────────────────────────────────────────────────────
@@ -304,6 +337,7 @@ def alert(message: str):
 
 def _fetch_html(url: str, timeout: int = 15) -> str:
     """Fetch a page's HTML source. Returns empty string on failure."""
+    _log(f'Fetching HTML from {url}')
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
                        'AppleWebKit/605.1.15 (KHTML, like Gecko) '
@@ -314,19 +348,22 @@ def _fetch_html(url: str, timeout: int = 15) -> str:
         req = Request(url, headers=headers)
         with urlopen(req, timeout=timeout) as resp:
             charset = resp.headers.get_content_charset() or 'utf-8'
-            return resp.read().decode(charset, errors='replace')
+            html = resp.read().decode(charset, errors='replace')
+            _log(f'Fetched {len(html)} chars (status {resp.status})')
+            return html
     except (URLError, HTTPError, OSError, ValueError) as e:
-        # Log but don't crash — the caller will handle an empty result
-        print(f'[scraper] Could not fetch {url}: {e}', file=sys.stderr)
+        _log(f'Fetch failed: {e}')
         return ''
 
 
 def _scrape_national_gallery(html: str, page_url: str) -> list[tuple[str, str]]:
     """National Gallery (London) — IIPImage server, IIIF tiles.
 
-    The page source contains references to server.iip with TIFF paths like:
-      server.iip?FIF=/fronts/N-0508-00-000032-XL-PYR.tif&...
-      server.iip?IIIF=/fronts/N-0508-00-000032-XL-PYR.tif/...
+    The TIFF path may appear in several places:
+    - og:image or other meta tags with a server.iip preview URL
+    - Inline JS with server.iip?FIF= or server.iip?IIIF= references
+    - Bare TIFF path strings in JS data objects
+    - Any URL containing server.iip (broadest catch)
 
     We extract the TIFF path and construct an IIIF info.json URL that
     dezoomify-rs's IIIF dezoomer can handle directly.
@@ -334,28 +371,52 @@ def _scrape_national_gallery(html: str, page_url: str) -> list[tuple[str, str]]:
     if 'nationalgallery.org.uk' not in page_url:
         return []
 
+    _log('Running National Gallery scraper')
     candidates = []
     seen_tifs = set()
 
-    # Pattern 1: FIF= parameter (IIP native protocol references)
-    for m in re.finditer(r'server\.iip\?FIF=(/[^&\s"\']+\.tif)', html, re.IGNORECASE):
+    # Pattern 1: FIF= parameter (IIP native protocol, e.g. in og:image)
+    for m in re.finditer(r'server\.iip\?FIF=(/[^&\s"\'<>]+\.tif)', html, re.IGNORECASE):
         tif = m.group(1)
         if tif not in seen_tifs:
             seen_tifs.add(tif)
+            _log(f'  Found TIFF via FIF=: {tif}')
 
     # Pattern 2: IIIF= parameter (IIIF protocol references)
-    # The TIFF path is followed by IIIF coordinates: /x,y,w,h/size/...
-    # Match up to .tif before the next /digit or end of value
     for m in re.finditer(r'server\.iip\?IIIF=(/[^"\'<>\s]+?\.tif)(?:/|\s|"|\'|$)', html, re.IGNORECASE):
         tif = m.group(1)
         if tif not in seen_tifs:
             seen_tifs.add(tif)
+            _log(f'  Found TIFF via IIIF=: {tif}')
 
-    # Pattern 3: bare TIFF path in JS (e.g. in a data object or variable)
+    # Pattern 3: DeepZoom= parameter (older NG setup)
+    for m in re.finditer(r'server\.iip\?DeepZoom=(/[^"\'<>\s]+?\.tif)\.dzi', html, re.IGNORECASE):
+        tif = m.group(1)
+        if tif not in seen_tifs:
+            seen_tifs.add(tif)
+            _log(f'  Found TIFF via DeepZoom=: {tif}')
+
+    # Pattern 4: bare TIFF path in JS (e.g. in a data object or variable)
     for m in re.finditer(r'["\'](/fronts/N-[^"\']+\.tif)["\']', html):
         tif = m.group(1)
         if tif not in seen_tifs:
             seen_tifs.add(tif)
+            _log(f'  Found TIFF bare path: {tif}')
+
+    # Pattern 5: og:image or any meta/img tag with server.iip
+    # e.g. <meta property="og:image" content="...server.iip?FIF=/fronts/N-0508-...tif&WID=800...">
+    for m in re.finditer(r'(?:content|src|href)=["\']([^"\']*server\.iip[^"\']*)["\']', html, re.IGNORECASE):
+        iip_url = m.group(1)
+        # Extract TIFF path from any IIP parameter
+        tif_match = re.search(r'(?:FIF|IIIF|DeepZoom|Zoomify)=(/[^&"\'<>\s]+?\.tif)', iip_url, re.IGNORECASE)
+        if tif_match:
+            tif = tif_match.group(1)
+            if tif not in seen_tifs:
+                seen_tifs.add(tif)
+                _log(f'  Found TIFF in meta/attr: {tif}')
+
+    if not seen_tifs:
+        _log('  No TIFF paths found in static HTML')
 
     base = 'https://www.nationalgallery.org.uk/server.iip?IIIF='
     for tif in seen_tifs:
@@ -472,6 +533,7 @@ def scrape_tile_url(page_url: str) -> list[tuple[str, str]]:
     """
     html = _fetch_html(page_url)
     if not html:
+        _log('No HTML returned — cannot scrape')
         return []
 
     # Run site-specific scrapers first
@@ -483,6 +545,7 @@ def scrape_tile_url(page_url: str) -> list[tuple[str, str]]:
 
     # If no site-specific hits, try generic patterns
     if not candidates:
+        _log('No site-specific matches; trying generic patterns')
         candidates = _scrape_generic_patterns(html, page_url)
 
     # Deduplicate by URL, preserving order
@@ -492,6 +555,10 @@ def scrape_tile_url(page_url: str) -> list[tuple[str, str]]:
         if url not in seen:
             seen.add(url)
             deduped.append((url, label))
+
+    _log(f'Scraper found {len(deduped)} candidate(s)')
+    for url, label in deduped:
+        _log(f'  {label}: {url}')
 
     return deduped
 
@@ -531,26 +598,33 @@ def choose_candidate(candidates: list[tuple[str, str]]) -> str | None:
     return candidates[0][0]
 
 
-def run_dezoomify(url: str, output_path: Path, max_mp: str) -> tuple[bool, str]:
-    """Run dezoomify-rs on a single URL. Returns (success, error_detail)."""
+def run_dezoomify(url: str, output_path: Path, max_mp: str,
+                  timeout: int = 180) -> tuple[bool, str]:
+    """Run dezoomify-rs on a single URL. Returns (success, error_detail).
+    timeout is in seconds — use a short value for the initial probe."""
     cmd = build_dezoomify_cmd(url, output_path, max_mp)
+    _log(f'Running: {" ".join(cmd[:3])}… (timeout {timeout}s)')
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
-            timeout=180
+            timeout=timeout
         )
     except subprocess.TimeoutExpired:
-        return False, 'dezoomify-rs timed out after 3 minutes.'
+        _log(f'Timed out after {timeout}s')
+        return False, f'dezoomify-rs timed out after {timeout} seconds.'
     except FileNotFoundError:
         return False, f'Could not run dezoomify-rs at: {DEZOOMIFY_BIN}'
 
     if result.returncode != 0:
         error_detail = (result.stderr or result.stdout).strip()
+        # Log a short excerpt — full error can be very long
+        _log(f'Failed: {error_detail[:120]}')
         return False, error_detail
 
+    _log('Success')
     return True, ''
 
 
@@ -589,24 +663,40 @@ def main():
     SAVE_FOLDER.mkdir(parents=True, exist_ok=True)
     output_path = unique_path(SAVE_FOLDER, filename, IMAGE_FORMAT)
 
-    # ── Try 1: page URL directly ──────────────────────────────────────────
+    # ── Try 1: page URL directly (short timeout — fail fast) ────────────
     # dezoomify-rs auto-detects tiled image sources (IIIF, Zoomify, DeepZoom,
-    # etc.) from the page URL.
+    # etc.) from the page URL. Use a 30s timeout: if it can't detect the
+    # format quickly, it won't succeed by waiting longer.
     actual_url = URL
-    success, error_detail = run_dezoomify(URL, output_path, MAX_MEGAPIXELS)
+    _log(f'Try 1: direct URL → {URL}')
+    success, error_detail = run_dezoomify(URL, output_path, MAX_MEGAPIXELS,
+                                          timeout=30)
 
     # ── Try 2: HTML scraping fallback ─────────────────────────────────────
     # If dezoomify-rs couldn't find a tiled image, fetch the page HTML and
     # search for known tile URL patterns (IIPImage, Micrio, Zoomify, etc.)
-    if not success and 'none succeeded' in error_detail.lower():
-        print('[scraper] Direct URL failed, trying HTML scraping…', file=sys.stderr)
+    if not success and ('none succeeded' in error_detail.lower()
+                        or 'timed out' in error_detail.lower()):
+        _log('Try 2: HTML scraping fallback')
         candidates = scrape_tile_url(URL)
 
         if candidates:
             chosen = choose_candidate(candidates)
             if chosen:
                 actual_url = chosen
-                success, error_detail = run_dezoomify(chosen, output_path, MAX_MEGAPIXELS)
+                _log(f'Retrying with scraped URL: {chosen}')
+                success, error_detail = run_dezoomify(
+                    chosen, output_path, MAX_MEGAPIXELS, timeout=180)
+
+    # ── Try 3: ask user to paste a URL manually ──────────────────────────
+    if not success:
+        _log('Try 3: asking user for manual URL')
+        manual_url = ask_manual_url()
+        if manual_url:
+            actual_url = manual_url
+            _log(f'Retrying with manual URL: {manual_url}')
+            success, error_detail = run_dezoomify(
+                manual_url, output_path, MAX_MEGAPIXELS, timeout=180)
 
     # ── Handle final failure ──────────────────────────────────────────────
     if not success:
