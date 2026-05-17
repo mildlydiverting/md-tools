@@ -90,11 +90,11 @@
 	<key>createdby</key>
 	<string>Kim Plowright</string>
 	<key>description</key>
-	<string>tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) from the current browser tab, with selected text, using dezoomify-rs</string>
+	<string>Get tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) and selected text from the current browser tab using dezoomify-rs</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>DeZoomify</string>
+	<string>md-DeZoomify</string>
 	<key>objects</key>
 	<array>
 		<dict>
@@ -278,12 +278,13 @@ Saves a stitched image plus a JSON metadata sidecar to a folder you configure. W
 
 ## User Config
 
- | Variable | Default | Notes |
-  |---|---|---|
-  | `save_folder` | `~/Pictures/dezoomify` | Set in Workflow configuration |
-  | `image_format` | `jpg` | `jpg` or `png` |
-  | `max_megapixels` | 20 | Caps the image output size in megapixels. `20` for ~4500x4500px image, `200` for ~14K×14K pixels max. *(empty = full resolution, which might be HUGE)* |
-  | `dezoomify_bin` | *(auto-detected)* | Advanced setting: only us this if your dezoomify-rs binary is in a non-standard location; leave blank for autodetect |
+`save_folder` Where to save images. Set in Workflow configuration. Default `~/Pictures/dezoomify` 
+
+`image_format` File type for saved images:`jpg` or `png`. jpg may have distortions, in which case use png. Default `jpg'.
+
+`max_megapixels` Caps the image output size in megapixels. `20` for ~4500x4500px image, `200` for ~14K×14K pixels max. Empty = full resolution, which might be HUGE. Default: `20` 
+
+`dezoomify_bin` *(auto-detected)*. Advanced setting: only us this if your dezoomify-rs binary is in a non-standard location; leave blank for autodetect.
 
 ### Intellectual Property and Copyright of Images
 
@@ -502,6 +503,8 @@ The Python script looks for it in this order:
 			<string>dezoomify_bin</string>
 		</dict>
 	</array>
+	<key>variablesdontexport</key>
+	<array/>
 	<key>version</key>
 	<string>1.2</string>
 	<key>webaddress</key>
