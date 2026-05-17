@@ -90,11 +90,11 @@
 	<key>createdby</key>
 	<string>Kim Plowright</string>
 	<key>description</key>
-	<string>Stitch and save tiled images (with metadata)</string>
+	<string>tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) from the current browser tab, with selected text, using dezoomify-rs</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>md-DeZoomify</string>
+	<string>DeZoomify</string>
 	<key>objects</key>
 	<array>
 		<dict>
@@ -263,9 +263,49 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string>Dezoomify
+	<string># Dezoomify
 
-Download tiled images using dezoomify-rs, along with a JSON sidecar file containing any scraped or selected information from the page.</string>
+Grab tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text currently selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
+
+Saves the full-resolution image plus a JSON metadata sidecar to a folder you configure. Works with Safari and Chrome.
+
+**v1.2 adds an HTML scraping fallback**: when dezoomify-rs can't auto-detect the
+tiled image from the page URL (common on museum sites that load viewers via
+JavaScript), the script fetches the page source and extracts tile URLs using
+site-specific scrapers. Currently supports the National Gallery (London), with
+Rijksmuseum and NGV in progress.
+
+## Intellectual Property and Copyright of Images
+
+Images on the open web are subject to copyright law in the same manner as any other creative work; there is no guarantee that an image is legally available for re-use just because it is freely accessible on the web. It is your responsibility to check your intended use of the image is permitted under copyright law in your locality, or to clear your usage with the rights owner.
+
+---
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `get_browser_info.js` | JXA script — gets URL, page title, selected text |
+| `dezoomify_save.py` | Python script — runs dezoomify-rs, scrapes tile URLs, prompts for filename, saves files |
+| `bin/dezoomify-rs` | Optional: bundled binary (see below) |
+
+---
+
+## How it works
+
+1. **Try direct**: passes the browser URL to dezoomify-rs, which tries all its
+   built-in dezoomers (IIIF, Zoomify, DeepZoom, IIPImage, etc.)
+2. **Scrape fallback**: if that fails, fetches the page HTML and runs
+   site-specific scrapers to find tile URLs hidden in JavaScript
+3. **Manual paste**: if scraping finds nothing, shows a dialog where you can
+   paste a tile URL from the browser's Network Inspector
+4. Saves the image + JSON metadata sidecar to your configured folder
+
+---
+
+## Dependencies
+
+**[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs)** must be installed.</string>
 	<key>uidata</key>
 	<dict>
 		<key>11452049-2D86-487D-8287-479C4DD093BE</key>
@@ -432,7 +472,7 @@ Download tiled images using dezoomify-rs, along with a JSON sidecar file contain
 		</dict>
 	</array>
 	<key>version</key>
-	<string>1.3</string>
+	<string>1.2</string>
 	<key>webaddress</key>
 	<string>https://www.mildlydiverting.com/</string>
 </dict>

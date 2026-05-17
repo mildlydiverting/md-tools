@@ -1,7 +1,7 @@
 # Handoff: dezoomify-alfred — v1.2 scraping fallback
 
 ## Context
-- **Repo**: `mildlydiverting/md-alfred-dezoomify` (or wherever Kim has put it)
+- **Repo**: `mildlydiverting/md-tools/md-alfred-dezoomify` (or wherever Kim has put it)
 - **Files being worked on**: `dezoomify_save.py` (v1.2), `get_browser_info.js` (v1.0), `test_dezoomify_workflow.zsh`
 - **Current version**: v1.2
 
@@ -22,6 +22,7 @@ Key technical findings:
 - The Turner (NG508) is 47,628 × 31,126 px = 1.48 GP, ~22,800 tiles — needs `max_megapixels` or a long timeout
 - `-l` and `--max-width` are mutually exclusive in dezoomify-rs — fixed in `build_dezoomify_cmd()`
 - dezoomify-rs won't overwrite files — script now cleans up partials between retries
+- alfred.app expects a script environment variable `alfred_workflow_cache` for volatile files
 
 ## Known issues
 
