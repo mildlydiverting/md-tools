@@ -1,4 +1,4 @@
-# dezoomify-alfred — v1.2
+# md-alfred-dezoomify — v1.2
 
 Alfred workflow to grab tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.)
 from the current browser tab using
