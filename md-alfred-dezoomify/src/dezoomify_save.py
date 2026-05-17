@@ -39,6 +39,7 @@ import re
 import shutil
 import math
 import datetime
+import tempfile
 from pathlib import Path
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse, urljoin
@@ -69,6 +70,12 @@ MAX_MEGAPIXELS = os.environ.get('max_megapixels', '').strip()
 
 _raw_folder    = os.environ.get('save_folder',  '~/Pictures/dezoomify')
 SAVE_FOLDER    = Path(_raw_folder).expanduser()
+
+# Alfred sets alfred_workflow_cache to a per-workflow volatile cache dir.
+# We download to cache first, then move to SAVE_FOLDER on success.
+# This avoids partial files littering the user's save folder on failure.
+_cache_dir     = os.environ.get('alfred_workflow_cache', '')
+CACHE_DIR      = Path(_cache_dir) if _cache_dir else Path(tempfile.gettempdir()) / 'dezoomify-alfred'
 
 _bin_override  = os.environ.get('dezoomify_bin', '').strip()
 DEZOOMIFY_BIN  = _bin_override if _bin_override else find_dezoomify()
@@ -684,9 +691,14 @@ def main():
 
     filename = sanitise_filename(filename)
 
-    # ── Prepare output path ────────────────────────────────────────────────
+    # ── Prepare output paths ──────────────────────────────────────────────
+    # Download to CACHE_DIR first, then move to SAVE_FOLDER on success.
+    # This avoids partial files littering the user's save folder when
+    # dezoomify-rs times out, the user cancels, or a retry loop is running.
     SAVE_FOLDER.mkdir(parents=True, exist_ok=True)
-    output_path = unique_path(SAVE_FOLDER, filename, IMAGE_FORMAT)
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    final_path = unique_path(SAVE_FOLDER, filename, IMAGE_FORMAT)
+    cache_path = CACHE_DIR / final_path.name
 
     # ── Try 1: page URL directly (short timeout — fail fast) ────────────
     # dezoomify-rs auto-detects tiled image sources (IIIF, Zoomify, DeepZoom,
@@ -694,7 +706,7 @@ def main():
     # format quickly, it won't succeed by waiting longer.
     actual_url = URL
     _log(f'Try 1: direct URL → {URL}')
-    success, error_detail = run_dezoomify(URL, output_path, MAX_MEGAPIXELS,
+    success, error_detail = run_dezoomify(URL, cache_path, MAX_MEGAPIXELS,
                                           timeout=30)
 
     # ── Try 2: HTML scraping fallback ─────────────────────────────────────
@@ -711,13 +723,13 @@ def main():
             # image — IIPImage, DeepZoom, manifest — so we iterate rather
             # than asking the user to choose.)
             for cand_url, cand_label in candidates:
-                if output_path.exists():
-                    output_path.unlink()
-                    _log(f'Cleaned up partial file: {output_path.name}')
+                if cache_path.exists():
+                    cache_path.unlink()
+                    _log(f'Cleaned up partial file in cache')
                 actual_url = cand_url
                 _log(f'Trying candidate: {cand_label} → {cand_url}')
                 success, error_detail = run_dezoomify(
-                    cand_url, output_path, MAX_MEGAPIXELS, timeout=600)
+                    cand_url, cache_path, MAX_MEGAPIXELS, timeout=600)
                 if success:
                     break
 
@@ -726,37 +738,45 @@ def main():
         _log('Try 3: asking user for manual URL')
         manual_url = ask_manual_url()
         if manual_url:
-            if output_path.exists():
-                output_path.unlink()
+            if cache_path.exists():
+                cache_path.unlink()
             actual_url = manual_url
             _log(f'Retrying with manual URL: {manual_url}')
             success, error_detail = run_dezoomify(
-                manual_url, output_path, MAX_MEGAPIXELS, timeout=600)
+                manual_url, cache_path, MAX_MEGAPIXELS, timeout=600)
 
     # ── Handle final failure ──────────────────────────────────────────────
     if not success:
+        # Clean up any partial download in cache
+        if cache_path.exists():
+            cache_path.unlink()
         alert(f'dezoomify-rs failed:\n\n{error_detail[:300]}')
         sys.exit(1)
 
-    if not output_path.exists():
+    if not cache_path.exists():
         # dezoomify-rs may have chosen a different extension — try to find it
-        found = list(SAVE_FOLDER.glob(f'{filename}.*'))
+        found = list(CACHE_DIR.glob(f'{filename}.*'))
         if found:
-            output_path = found[0]
+            cache_path = found[0]
+            final_path = final_path.with_suffix(cache_path.suffix)
         else:
             alert(
                 'dezoomify-rs reported success but no output file was found.\n'
-                f'Check: {SAVE_FOLDER}'
+                f'Check: {CACHE_DIR}'
             )
             sys.exit(1)
 
+    # ── Move to final save folder ──────────────────────────────────────────
+    shutil.move(str(cache_path), str(final_path))
+    _log(f'Saved to {final_path}')
+
     # ── Write metadata sidecar ─────────────────────────────────────────────
-    write_metadata(output_path, dezoomify_version, actual_url)
+    write_metadata(final_path, dezoomify_version, actual_url)
 
     # ── Output for Alfred notification step ───────────────────────────────
-    w, h = get_image_dimensions(output_path)
+    w, h = get_image_dimensions(final_path)
     size_str = f' ({w}×{h}px)' if w and h else ''
-    print(f'{output_path.name}{size_str}')
+    print(f'{final_path.name}{size_str}')
 
 
 if __name__ == '__main__':
