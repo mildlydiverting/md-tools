@@ -418,11 +418,25 @@ def _scrape_national_gallery(html: str, page_url: str) -> list[tuple[str, str]]:
     if not seen_tifs:
         _log('  No TIFF paths found in static HTML')
 
-    base = 'https://www.nationalgallery.org.uk/server.iip?IIIF='
+    base = 'https://www.nationalgallery.org.uk/server.iip'
     for tif in seen_tifs:
-        info_url = f'{base}{tif}/info.json'
-        label = tif.rsplit('/', 1)[-1]  # e.g. N-0508-00-000032-XL-PYR.tif
-        candidates.append((info_url, f'NG: {label}'))
+        # IIPImage native (FIF=) — confirmed working with dezoomify-rs's
+        # IIPImage dezoomer (see lovasoa/dezoomify#49)
+        candidates.append((
+            f'{base}?FIF={tif}',
+            f'NG IIPImage: {tif.rsplit("/", 1)[-1]}'))
+        # DeepZoom fallback
+        candidates.append((
+            f'{base}?DeepZoom={tif}.dzi',
+            f'NG DeepZoom: {tif.rsplit("/", 1)[-1]}'))
+
+    # Also check for manifest URL (altTemplate=PaintingManifest)
+    for m in re.finditer(
+        r'(https?://[^"\'<>\s]+\?altTemplate=PaintingManifest[^"\'<>\s]*)', html
+    ):
+        manifest_url = m.group(1).replace('&amp;', '&')
+        candidates.append((manifest_url, 'NG IIIF Manifest'))
+        _log(f'  Found manifest URL: {manifest_url}')
 
     return candidates
 
@@ -681,22 +695,32 @@ def main():
         candidates = scrape_tile_url(URL)
 
         if candidates:
-            chosen = choose_candidate(candidates)
-            if chosen:
-                actual_url = chosen
-                _log(f'Retrying with scraped URL: {chosen}')
+            # Try each candidate URL in order until one works.
+            # (Sites like the NG produce multiple URL formats for the same
+            # image — IIPImage, DeepZoom, manifest — so we iterate rather
+            # than asking the user to choose.)
+            for cand_url, cand_label in candidates:
+                if output_path.exists():
+                    output_path.unlink()
+                    _log(f'Cleaned up partial file: {output_path.name}')
+                actual_url = cand_url
+                _log(f'Trying candidate: {cand_label} → {cand_url}')
                 success, error_detail = run_dezoomify(
-                    chosen, output_path, MAX_MEGAPIXELS, timeout=180)
+                    cand_url, output_path, MAX_MEGAPIXELS, timeout=600)
+                if success:
+                    break
 
     # ── Try 3: ask user to paste a URL manually ──────────────────────────
     if not success:
         _log('Try 3: asking user for manual URL')
         manual_url = ask_manual_url()
         if manual_url:
+            if output_path.exists():
+                output_path.unlink()
             actual_url = manual_url
             _log(f'Retrying with manual URL: {manual_url}')
             success, error_detail = run_dezoomify(
-                manual_url, output_path, MAX_MEGAPIXELS, timeout=180)
+                manual_url, output_path, MAX_MEGAPIXELS, timeout=600)
 
     # ── Handle final failure ──────────────────────────────────────────────
     if not success:
