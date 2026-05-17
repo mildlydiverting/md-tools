@@ -1,127 +1,122 @@
-# Handoff: dezoomify-alfred — HTML scraping fallback + next steps
+# Handoff: dezoomify-alfred — v1.2 scraping fallback + upstream contribution
 
 ## Context
 - **Repo**: not yet pushed to GitHub (files live in Alfred workflow folder)
 - **Workflow folder**: `~/Library/CloudStorage/Dropbox/cross-machine-preferences/alfred/alfred preference sync/Alfred.alfredpreferences/workflows/user.workflow.190FB249-DD4B-406E-A65C-9021546D6424/`
-- **Files being worked on**: `dezoomify_save.py` (v1.1), `get_browser_info.js` (v1.0), `test_dezoomify_workflow.zsh`
-- **Current version**: v1.1
+- **Files being worked on**: `dezoomify_save.py` (v1.2), `get_browser_info.js` (v1.0), `test_dezoomify_workflow.zsh`
+- **Current version**: v1.2
 
-## What we built last session
+## What we built this session
 
-A working Alfred workflow that:
-- Detects frontmost browser (Safari or Chrome) via JXA, grabs URL + page title
-- Captures selected text via Alfred hotkey clipboard trick
-- Runs dezoomify-rs on the URL with `-l` flag (largest zoom level, non-interactive)
-- Shows a macOS filename dialog with a smart suggestion (parses "Title: X" / "Creator: X" from selected text, strips site names from page titles, falls back to domain+datetime)
-- Saves image + JSON sidecar with full metadata (dimensions via sips, file size, dezoomify-rs version, eagle_item_id placeholder)
+Added an **HTML scraping fallback layer** to `dezoomify_save.py`. When dezoomify-rs can't auto-detect a tiled image from the page URL (error contains "none succeeded"), the script now:
 
-**Confirmed working**: Google Arts & Culture page URLs. The workflow is end-to-end functional for sites where dezoomify-rs can detect the tiled image directly from the page URL.
+1. Fetches the page HTML via `urllib` (with Safari User-Agent)
+2. Runs site-specific scrapers to extract candidate tile URLs
+3. Falls back to generic pattern matching if no site-specific hits
+4. If one candidate: retries dezoomify-rs automatically
+5. If multiple candidates: shows a macOS choose-from-list dialog
+6. Records the actual URL used in the JSON metadata sidecar (`tile_url` field)
+
+### Site-specific scrapers implemented
+
+| Site | Format | What it extracts | Tested? |
+|---|---|---|---|
+| National Gallery (London) | IIPImage/IIIF | TIFF path → IIIF info.json URL | ⚠️ Regex tested against known tile URL; needs live test |
+| Rijksmuseum | Micrio/IIIF | Micrio ID → iiif.micr.io info.json | ❌ Not yet tested |
+| NGV | Zoomify | Zoom URL → ImageProperties.xml | ❌ Not yet tested |
+
+### Generic patterns (fallback)
+- IIIF info.json URLs
+- IIIF manifest.json URLs
+- DeepZoom .dzi files
+- Zoomify ImageProperties.xml
+- IIPImage FIF= URLs
+
+### Key finding: National Gallery tile format
+The NG uses IIPImage serving via the **IIIF Image API** (not DeepZoom as earlier GitHub issues suggested). The tile URL Kim captured from the Turner painting (NG508):
+
+```
+https://www.nationalgallery.org.uk/server.iip?IIIF=/fronts/N-0508-00-000032-XL-PYR.tif/23552,14336,1024,1024/256,256/0/default.jpg
+```
+
+The constructed info.json URL for dezoomify-rs:
+```
+https://www.nationalgallery.org.uk/server.iip?IIIF=/fronts/N-0508-00-000032-XL-PYR.tif/info.json
+```
+
+The TIFF naming pattern is `N-{accession}-00-{sequence}-{quality}-PYR.tif` in `/fronts/`. Quality codes seen: `XL` (current), `WZ` (2016 era). The 6-digit sequence varies per painting.
 
 ## Known issues / deferred things
 
-- **Rijksmuseum fails**: Uses Micrio (iiif.micr.io) for image delivery. The short Micrio ID (e.g. `PJEZO`) is embedded in the page JS but not in the collection page URL. dezoomify-rs can't detect it from the page URL alone. The correct URL to pass dezoomify-rs is `https://iiif.micr.io/{ID}/info.json` — but you need to find the ID first.
-- **NGV works if you pass the right URL**: The Zoomify XML path (`https://content.ngv.vic.gov.au/col-images/zooms/{ID}/ImageProperties.xml`) works, but dezoomify-rs can't construct it from the collection page URL. The ID (`Fd104934` etc.) is in the page source as `var url = 'https://content.ngv.vic.gov.au/col-images/zooms/{ID}/'` inside an `ol.source.Zoomify` block.
-- **GAC images are small**: Google Arts & Culture intentionally restricts resolution regardless of zoom level flag. This is a Google-imposed limit, not a workflow bug.
-- **No interactive zoom level selection**: Currently always uses `-l` (largest). User can't choose a specific level. Deferred.
-- **No Eagle integration**: `eagle_item_id` field in JSON sidecar is `null` placeholder. Deferred.
-- **Not yet pushed to a git repo**: Should go in `mildlydiverting/md-tools` or a new `mildlydiverting/dezoomify-alfred` repo.
+- **NG scraper needs live testing**: The regex patterns work against the known tile URL string, but we haven't confirmed what the TIFF path looks like in the actual page HTML source. Kim needs to View Source on the painting page and search for `server.iip` or `.tif` to confirm where the path appears. It might be in a JS object, a `data-*` attribute, or an inline `<script>` block.
+- **NG may block urllib fetch**: The page returned 403 to Claude's web_fetch tool. The scraper uses a Safari User-Agent header which may help, but needs testing.
+- **Rijksmuseum not yet tested**: Need to save a Rijksmuseum page source and verify the Micrio ID extraction regex.
+- **NGV not yet tested**: Same — need a live page.
+- **No Eagle integration yet**: `eagle_item_id` field still `null` placeholder.
+- **Not yet pushed to git**: Should go in `mildlydiverting/md-tools` or a new repo.
 
-## What to do next session: HTML scraping fallback
+## What to do next session
 
-### The problem
-dezoomify-rs is given the collection page URL. For sites like Rijksmuseum and NGV, the tiled image viewer is loaded dynamically with a secondary ID that doesn't appear in the page URL. dezoomify-rs tries the page URL, finds no tiled image format, and fails.
+### Priority 1: Live testing
+1. Test the NG scraper against the Turner page — either:
+   - Run the workflow from Alfred against `https://www.nationalgallery.org.uk/paintings/joseph-mallord-william-turner-ulysses-deriding-polyphemus-homer-s-odyssey`
+   - Or run `dezoomify_save.py` manually from Terminal with env vars set
+2. If the NG page returns 403 to urllib, try adding the page's `Referer` header, or use the `-H "Referer: ..."` flag in the dezoomify-rs command
+3. Check whether the TIFF path is in the static HTML at all, or only loaded via JS (if JS-only, we may need to extract it from an API endpoint instead)
 
-### The solution: a Python HTML scraper
-When dezoomify-rs fails with "none succeeded", fetch the page HTML and search for known patterns. This is modelled on dezoomify (web version)'s dezoomer architecture — each dezoomer has a `contents` regex that matches page source.
+### Priority 2: Test other sites
+- Rijksmuseum: `https://www.rijksmuseum.nl/en/collection/object/Nude-Woman-Lying-on-a-Pillow--6af483682af3df3a835a526f7beb07f3`
+- NGV: `https://www.ngv.vic.gov.au/explore/collection/work/3867/`
 
-**Patterns to implement (in order of priority):**
+### Priority 3: Upstream contribution planning
+We want to contribute a National Gallery dezoomer to `lovasoa/dezoomify-rs`.
 
-| Format | Pattern to find in HTML | URL to pass dezoomify-rs |
-|---|---|---|
-| Micrio/IIIF (Rijksmuseum) | `iiif.micr.io/([A-Za-z0-9]+)` | `https://iiif.micr.io/{ID}/info.json` |
-| Zoomify (NGV etc.) | `ol\.source\.Zoomify.*?url.*?['"]([^'"]+)['"]` | `{url}ImageProperties.xml` |
-| Generic IIIF manifest | `(https?://[^'"]+/manifest\.json)` | the manifest URL directly |
-| DeepZoom DZI | `(https?://[^'"]+\.dzi)` | the DZI URL directly |
-| Generic info.json | `(https?://[^'"]+/info\.json)` | the info.json URL directly |
+**Architecture notes** (from DeepWiki analysis of the codebase):
+- Each dezoomer implements the `Dezoomer` trait: `name()` returns an identifier string, `zoom_levels()` processes a `DezoomerInput` (URI + page contents) and returns `ZoomLevels`
+- The GAC dezoomer is the closest model: it fetches the page HTML, regex-extracts a base URL + token, fetches tile metadata XML, then generates zoom levels
+- The NG dezoomer would: recognise `nationalgallery.org.uk/paintings/` → fetch HTML → extract TIFF path → construct IIIF info.json URL → delegate to the existing IIIF dezoomer
+- Source lives in `src/` with one folder per dezoomer (e.g. `src/google_arts_and_culture/`)
+- New dezoomer must be registered in `all_dezoomers()` in `src/auto.rs`
+- dezoomify-rs is Rust; the Python scraper serves as a prototype to validate the patterns before porting
 
-**Logic to add to `dezoomify_save.py`:**
+**Steps to contribute:**
+1. Validate the scraping patterns with the Python prototype (this session's work)
+2. File an issue on `lovasoa/dezoomify-rs` proposing the NG dezoomer (gauge interest, ask about architecture preferences)
+3. Write the Rust implementation using the GAC dezoomer as a template
+4. Submit PR with tests
 
-```python
-def scrape_tile_url(page_url: str) -> list[str]:
-    """Fetch page HTML and extract candidate tiled image URLs.
-    Returns a list of candidate URLs to try with dezoomify-rs."""
-    # fetch HTML (urllib, no dependencies)
-    # apply regex patterns above
-    # return deduplicated list of candidates
-
-def try_dezoomify(url, output_path, ...):
-    """Run dezoomify-rs; return (success, error_string)"""
-
-# In main():
-# 1. Try page URL directly
-# 2. If fails with "none succeeded", call scrape_tile_url(URL)
-# 3. If one candidate: retry automatically, show alert if that also fails
-# 4. If multiple candidates: show osascript choose-from-list dialog
-# 5. If no candidates: show dialog asking user to paste URL manually
-```
-
-### Key research to do first
-Before writing the scraper, read dezoomify's actual dezoomer source files to borrow their regex patterns:
-- `https://github.com/lovasoa/dezoomify/tree/master` — look at the JS files in the root, each is a dezoomer
-- `https://raw.githubusercontent.com/lovasoa/dezoomify/master/tests/test_urls.js` — comprehensive list of known-working URLs, good for testing
-- The dezoomify-extension's `background.js` uses URL pattern matching (not HTML scraping), so it's less useful for our Python approach. Its pattern list is still worth reading for known tile URL signatures.
-
-**Important distinction learned this session:**
-- dezoomify-extension = network request interception (live browser, can't replicate in Python)
-- dezoomify web app dezoomers = HTML source pattern matching (replicable in Python ✓)
-- dezoomify-rs = tries its own detection from page URL, no HTML scraping fallback
-
-** Sources of info **
-
-https://dezoomify.ophir.dev
-https://github.com/lovasoa/dezoomify
-https://github.com/lovasoa/dezoomify/wiki
-https://dezoomify-rs.ophir.dev
-https://github.com/lovasoa/dezoomify-rs
-https://github.com/lovasoa/dezoomify/issues?q=
-https://lovasoa.github.io/dezoomify-extension/
-https://github.com/lovasoa/dezoomify-extension
-https://github.com/lovasoa/dezoomify/wiki/How-to-add-support-for-a-new-website
-
-** potential test pages **
-
-https://www.rijksmuseum.nl/en/collection/object/Nude-Woman-Lying-on-a-Pillow--6af483682af3df3a835a526f7beb07f3
-https://artsandculture.google.com/asset/horse-study-after-george-stubbs-anatomy-of-the-horse-clara-drummond/IQHEEIRr5uvO7A
-https://wellcomecollection.org/works/zs6gser7/images?id=c7hxpemj
-https://www.ngv.vic.gov.au/explore/collection/work/3867/
-https://www.metmuseum.org/art/collection/search/435809
-https://www.tate.org.uk/art/artworks/johnson-young-man-in-green-t16376
-
-### osascript choose-from-list for multiple candidates
-```applescript
-choose from list {"https://iiif.micr.io/ABC/info.json", "https://..."} 
-  with title "Dezoomify Grab" 
-  with prompt "Multiple tiled images found. Which to download?"
-  default items item 1
-```
-Python: `subprocess.run(['osascript', '-e', script], ...)`
+**Key source files to study:**
+- `src/google_arts_and_culture/mod.rs` — page scraping + dezoomer impl
+- `src/google_arts_and_culture/tile_info.rs` — regex extraction of page info
+- `src/dezoomer.rs` — the `Dezoomer` trait definition
+- `src/auto.rs` — auto-detection logic and dezoomer registration
+- DeepWiki docs: https://deepwiki.com/lovasoa/dezoomify-rs/2.2-dezoomer-framework
 
 ## Relevant technical constraints or decisions already made
-- dezoomify-rs flags: `-l` (largest), `stdin=subprocess.DEVNULL` (no hang), `--max-width/--max-height` for size limiting
-- Alfred env vars: `url`, `page_title`, `selected_text`, `save_folder`, `dezoomify_bin`, `image_format`, `max_megapixels`
-- No frameworks: vanilla Python 3, stdlib only (`subprocess`, `json`, `re`, `urllib`, `pathlib`)
-- JXA script outputs Alfred-format JSON: `{"alfredworkflow": {"arg": URL, "variables": {...}}}`
-- Run Script step calling `get_browser_info.js` must use `< /dev/null` to stop selected text leaking into output
-- `sips` used for image dimensions (ships with macOS, no Pillow needed)
-- Python is at `/usr/bin/python3` (system) or `/usr/local/bin/python3` (Homebrew); workflow uses whichever `python3` resolves to
-- Python 3.14.4 installed at `/usr/local/Cellar/python@3.14/`
+- dezoomify-rs flags: `-l` (largest), `stdin=subprocess.DEVNULL` (no hang)
+- Scraper uses stdlib only: `urllib.request`, `re` — no external dependencies
+- `_fetch_html()` uses Safari User-Agent to avoid simple bot blocks
+- Site-specific scrapers run before generic patterns (more reliable)
+- Metadata sidecar now has `tile_url` field (null if page URL worked directly)
+- Python is at `/usr/local/Cellar/python@3.14/`
+
+## Test pages
+
+| Site | URL | Expected format |
+|---|---|---|
+| National Gallery | https://www.nationalgallery.org.uk/paintings/joseph-mallord-william-turner-ulysses-deriding-polyphemus-homer-s-odyssey | IIPImage/IIIF |
+| Rijksmuseum | https://www.rijksmuseum.nl/en/collection/object/Nude-Woman-Lying-on-a-Pillow--6af483682af3df3a835a526f7beb07f3 | Micrio/IIIF |
+| NGV | https://www.ngv.vic.gov.au/explore/collection/work/3867/ | Zoomify |
+| Google Arts & Culture | https://artsandculture.google.com/asset/horse-study-after-george-stubbs-anatomy-of-the-horse-clara-drummond/IQHEEIRr5uvO7A | GAC (works directly, no scraper needed) |
+| Met Museum | https://www.metmuseum.org/art/collection/search/435809 | Unknown — investigate |
+| Tate | https://www.tate.org.uk/art/artworks/johnson-young-man-in-green-t16376 | Unknown — investigate |
 
 ## Files to attach to next chat
-- [ ] Current `dezoomify_save.py` (v1.1)
-- [ ] Current `get_browser_info.js`
+- [ ] Current `dezoomify_save.py` (v1.2)
+- [ ] Current `get_browser_info.js` (v1.0)
 - [ ] Current `test_dezoomify_workflow.zsh`
 - [ ] This handoff note
-- [ ] Saved HTML of a failing page (Rijksmuseum) if you want to test the scraper offline
+- [ ] Saved HTML of a failing page (NG painting page) for offline scraper testing
 
 ---
 *Template: ~/Development/are.na-toolkit/handoff-template.md*
