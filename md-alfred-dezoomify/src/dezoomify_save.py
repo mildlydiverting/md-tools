@@ -161,18 +161,29 @@ def parse_title_components(title: str) -> list[str]:
 
 
 def build_dezoomify_cmd(url: str, output_path: Path, max_megapixels_str: str) -> list[str]:
-    """-l selects the largest available zoom level automatically, avoiding the
-    interactive prompt. max_megapixels adds --max-width/--max-height caps."""
-    cmd = [DEZOOMIFY_BIN, '-l']   # -l = select largest; no interactive prompt
+    """Build the dezoomify-rs command.
 
+    -l and --max-width are mutually exclusive zoom level selectors:
+    - If max_megapixels is set, use --max-width/--max-height to cap the size
+      (this also selects the appropriate zoom level, no -l needed)
+    - Otherwise, use -l to select the largest level and avoid the interactive
+      prompt
+    """
+    cmd = [DEZOOMIFY_BIN]
+
+    size_limited = False
     if max_megapixels_str:
         try:
             max_mp = float(max_megapixels_str)
             if max_mp > 0:
                 max_side = int(math.sqrt(max_mp * 1_000_000))
                 cmd += ['--max-width', str(max_side), '--max-height', str(max_side)]
+                size_limited = True
         except ValueError:
             pass
+
+    if not size_limited:
+        cmd.append('-l')   # -l = select largest; no interactive prompt
 
     cmd += [url, str(output_path)]
     return cmd
