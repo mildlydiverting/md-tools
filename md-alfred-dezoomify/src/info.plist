@@ -265,19 +265,31 @@
 	<key>readme</key>
 	<string># Dezoomify
 
-Grab tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text currently selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
+Get tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text currently selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
 
-Saves the full-resolution image plus a JSON metadata sidecar to a folder you configure. Works with Safari and Chrome.
+Saves a stitched image plus a JSON metadata sidecar to a folder you configure. Works with Safari and Chrome.
 
-**v1.2 adds an HTML scraping fallback**: when dezoomify-rs can't auto-detect the
-tiled image from the page URL (common on museum sites that load viewers via
-JavaScript), the script fetches the page source and extracts tile URLs using
-site-specific scrapers. Currently supports the National Gallery (London), with
-Rijksmuseum and NGV in progress.
+## Usage
 
-## Intellectual Property and Copyright of Images
+1. Select any relevant text (eg. title, artist info and other metadata you might want to use in a citation later) on the page containing a tiled image [Try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano))
+2. Use the Hotkey or keyword `dezoom` to get the image
+3. The image and a JSON file containing metadata and the text selected will be saved in the folder you set in the workflow options.
+
+
+## User Config
+
+ | Variable | Default | Notes |
+  |---|---|---|
+  | `save_folder` | `~/Pictures/dezoomify` | Set in Workflow configuration |
+  | `image_format` | `jpg` | `jpg` or `png` |
+  | `max_megapixels` | 20 | Caps the image output size in megapixels. `20` for ~4500x4500px image, `200` for ~14K×14K pixels max. *(empty = full resolution, which might be HUGE)* |
+  | `dezoomify_bin` | *(auto-detected)* | Advanced setting: only us this if your dezoomify-rs binary is in a non-standard location; leave blank for autodetect |
+
+### Intellectual Property and Copyright of Images
 
 Images on the open web are subject to copyright law in the same manner as any other creative work; there is no guarantee that an image is legally available for re-use just because it is freely accessible on the web. It is your responsibility to check your intended use of the image is permitted under copyright law in your locality, or to clear your usage with the rights owner.
+
+More information in the [GitHub README](https://github.com/mildlydiverting/md-tools/tree/main/md-alfred-dezoomify)
 
 ---
 
@@ -287,7 +299,7 @@ Images on the open web are subject to copyright law in the same manner as any ot
 |---|---|
 | `get_browser_info.js` | JXA script — gets URL, page title, selected text |
 | `dezoomify_save.py` | Python script — runs dezoomify-rs, scrapes tile URLs, prompts for filename, saves files |
-| `bin/dezoomify-rs` | Optional: bundled binary (see below) |
+| `bin/dezoomify-rs` | Optional bundled binary |
 
 ---
 
@@ -301,11 +313,30 @@ Images on the open web are subject to copyright law in the same manner as any ot
    paste a tile URL from the browser's Network Inspector
 4. Saves the image + JSON metadata sidecar to your configured folder
 
+**v1.2 adds an HTML scraping fallback**: when dezoomify-rs can't auto-detect the
+tiled image from the page URL (common on museum sites that load viewers via
+JavaScript), the script fetches the page source and extracts tile URLs using
+site-specific scrapers. Currently supports the National Gallery (London), with
+Rijksmuseum and NGV in progress.
+
+
 ---
 
 ## Dependencies
 
-**[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs)** must be installed.</string>
+**[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs)** must be installed. (It should be bundled in the `bin` folder within this workflow, but I am new to this...)
+
+You can install via Homebrew:
+
+```zsh
+brew install dezoomify-rs
+```
+
+The Python script looks for it in this order:
+1. `./bin/dezoomify-rs` inside the workflow folder (bundled)
+2. `/opt/homebrew/bin/dezoomify-rs` (Homebrew, Apple Silicon)
+3. `/usr/local/bin/dezoomify-rs` (Homebrew, Intel)
+4. Anywhere on `$PATH`</string>
 	<key>uidata</key>
 	<dict>
 		<key>11452049-2D86-487D-8287-479C4DD093BE</key>
@@ -360,6 +391,27 @@ Images on the open web are subject to copyright law in the same manner as any ot
 	</dict>
 	<key>userconfigurationconfig</key>
 	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>dezoom</string>
+				<key>placeholder</key>
+				<string>dezoom</string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Customise the keyword to trigger this workflow</string>
+			<key>label</key>
+			<string>Keyword</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>keyword</string>
+		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -420,7 +472,7 @@ Images on the open web are subject to copyright law in the same manner as any ot
 				<true/>
 			</dict>
 			<key>description</key>
-			<string>In megapixels. Default is 20. 200 will give a file ~14K pixels per side. Choose wisely, these pics are chonky bois.</string>
+			<string>In megapixels. Default is 20, about 4500px per side. 200 will give a file ~14K pixels per side. Choose wisely, these pics are chonky bois.</string>
 			<key>label</key>
 			<string>Maximum Dimensions</string>
 			<key>type</key>
@@ -448,27 +500,6 @@ Images on the open web are subject to copyright law in the same manner as any ot
 			<string>filepicker</string>
 			<key>variable</key>
 			<string>dezoomify_bin</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>default</key>
-				<string>dezoom</string>
-				<key>placeholder</key>
-				<string>dezoom</string>
-				<key>required</key>
-				<false/>
-				<key>trim</key>
-				<true/>
-			</dict>
-			<key>description</key>
-			<string>Customise the keyword to trigger this workflow</string>
-			<key>label</key>
-			<string>Keyword</string>
-			<key>type</key>
-			<string>textfield</string>
-			<key>variable</key>
-			<string>keyword</string>
 		</dict>
 	</array>
 	<key>version</key>
