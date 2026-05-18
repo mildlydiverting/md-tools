@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-dezoomify_save.py — v1.2
+dezoomify_save.py — v1.3
 Alfred workflow script: download a tiled image from the current browser tab
 using dezoomify-rs, prompt for a filename, and save image + metadata.
 
@@ -18,6 +18,13 @@ Reads from Alfred workflow environment variables
                     leave blank for no limit (downloads full resolution)
 
 Changelog:
+  v1.3 - IIIF v2 manifest resolver: dezoomify-rs only parses IIIF
+         Presentation v3 manifests. Many museum sites (AIC, Harvard,
+         Wellcome, etc.) still serve v2. When the scraper finds a
+         manifest.json URL, we now fetch it ourselves, detect v2 vs v3,
+         and extract the IIIF Image API info.json URL(s) from the
+         canvas/image structure. Also adds AIC site-specific scraper
+         using their public API.
   v1.2 - HTML scraping fallback: when dezoomify-rs can't auto-detect the
          tiled image from the page URL, fetches the page HTML and extracts
          candidate tile URLs using site-specific scrapers. Supports:
@@ -512,6 +519,169 @@ def _scrape_ngv(html: str, page_url: str) -> list[tuple[str, str]]:
     return candidates
 
 
+def _scrape_artic(html: str, page_url: str) -> list[tuple[str, str]]:
+    """Art Institute of Chicago — IIIF via Mirador viewer.
+
+    AIC's public API returns an image_id (UUID) for each artwork.
+    The IIIF info.json URL is: https://www.artic.edu/iiif/2/{image_id}/info.json
+
+    The artwork ID is in the page URL: /artworks/{id}/...
+    The manifest at api.artic.edu is IIIF Presentation v2, which dezoomify-rs
+    can't parse directly — so we go straight to the info.json via the API.
+    """
+    if 'artic.edu' not in page_url:
+        return []
+
+    _log('Running AIC scraper')
+
+    # Extract artwork ID from URL: /artworks/103887/...
+    m = re.search(r'/artworks/(\d+)', page_url)
+    if not m:
+        _log('  No artwork ID found in URL')
+        return []
+
+    artwork_id = m.group(1)
+    api_url = f'https://api.artic.edu/api/v1/artworks/{artwork_id}?fields=image_id,title'
+
+    try:
+        _log(f'  Fetching AIC API: {api_url}')
+        req = Request(api_url, headers={
+            'User-Agent': 'dezoomify-alfred/1.3',
+            'Accept': 'application/json',
+        })
+        with urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            image_id = data.get('data', {}).get('image_id')
+            title = data.get('data', {}).get('title', '')
+            if image_id:
+                info_url = f'https://www.artic.edu/iiif/2/{image_id}/info.json'
+                _log(f'  Found image_id: {image_id}')
+                label = f'AIC IIIF: {title}' if title else f'AIC IIIF: {image_id}'
+                return [(info_url, label)]
+            else:
+                _log('  API returned no image_id')
+    except (URLError, HTTPError, OSError, ValueError, KeyError) as e:
+        _log(f'  AIC API failed: {e}')
+
+    return []
+
+
+def _resolve_iiif_manifests(candidates: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """Resolve IIIF manifest URLs to info.json URLs.
+
+    dezoomify-rs supports IIIF Presentation v3 manifests but not v2 (which
+    use @type/sc:Manifest instead of type/Manifest). Many museum sites still
+    serve v2. This function fetches any manifest.json candidates, extracts
+    the IIIF Image API service URLs from the canvas structure, and returns
+    info.json URLs that dezoomify-rs's IIIF dezoomer can handle directly.
+
+    Non-manifest candidates are passed through unchanged.
+
+    IIIF Presentation v2 structure:
+      sequences[].canvases[].images[].resource.service.@id → image service
+    IIIF Presentation v3 structure:
+      items[].items[].items[].body.service[].id → image service
+    """
+    resolved = []
+
+    for url, label in candidates:
+        # Only process manifest.json URLs
+        if not url.endswith('/manifest.json') and 'manifest' not in label.lower():
+            resolved.append((url, label))
+            continue
+
+        _log(f'  Resolving manifest: {url}')
+        try:
+            req = Request(url, headers={
+                'User-Agent': 'dezoomify-alfred/1.3',
+                'Accept': 'application/ld+json, application/json',
+            })
+            with urlopen(req, timeout=10) as resp:
+                manifest = json.loads(resp.read().decode('utf-8'))
+        except (URLError, HTTPError, OSError, ValueError) as e:
+            _log(f'  Failed to fetch manifest: {e}')
+            # Keep the original candidate — dezoomify-rs might handle it
+            resolved.append((url, label))
+            continue
+
+        info_urls = _extract_image_services(manifest)
+        if info_urls:
+            _log(f'  Extracted {len(info_urls)} info.json URL(s) from manifest')
+            for info_url, info_label in info_urls:
+                resolved.append((info_url, info_label))
+        else:
+            _log('  No image services found in manifest — keeping original')
+            resolved.append((url, label))
+
+    return resolved
+
+
+def _extract_image_services(manifest: dict) -> list[tuple[str, str]]:
+    """Extract IIIF Image API service URLs from a parsed manifest.
+
+    Handles both Presentation API v2 and v3 structures.
+    Returns a list of (info_json_url, label) tuples.
+    """
+    results = []
+
+    # ── Detect version ────────────────────────────────────────────────────
+    is_v2 = (
+        manifest.get('@type') == 'sc:Manifest'
+        or 'presentation/2' in manifest.get('@context', '')
+    )
+    is_v3 = (
+        manifest.get('type') == 'Manifest'
+        or 'presentation/3' in str(manifest.get('@context', ''))
+    )
+
+    if is_v2:
+        _log('  Manifest is IIIF Presentation v2')
+        for seq in manifest.get('sequences', []):
+            for canvas in seq.get('canvases', []):
+                canvas_label = canvas.get('label', '')
+                for image in canvas.get('images', []):
+                    resource = image.get('resource', {})
+                    service = resource.get('service', {})
+                    # service can be a dict or a list
+                    services = service if isinstance(service, list) else [service]
+                    for svc in services:
+                        svc_id = svc.get('@id') or svc.get('id')
+                        if svc_id:
+                            info_url = svc_id.rstrip('/') + '/info.json'
+                            lbl = canvas_label if canvas_label else svc_id.rsplit('/', 1)[-1]
+                            results.append((info_url, f'IIIF v2: {lbl}'))
+
+    elif is_v3:
+        _log('  Manifest is IIIF Presentation v3')
+        # v3: items (canvases) → items (annotation pages) → items (annotations)
+        for canvas in manifest.get('items', []):
+            canvas_label = canvas.get('label', {})
+            # v3 labels are language maps: {"en": ["Label"]}
+            if isinstance(canvas_label, dict):
+                for vals in canvas_label.values():
+                    if isinstance(vals, list) and vals:
+                        canvas_label = vals[0]
+                        break
+                else:
+                    canvas_label = ''
+            for anno_page in canvas.get('items', []):
+                for anno in anno_page.get('items', []):
+                    body = anno.get('body', {})
+                    body_service = body.get('service', [])
+                    services = body_service if isinstance(body_service, list) else [body_service]
+                    for svc in services:
+                        svc_id = svc.get('id') or svc.get('@id')
+                        if svc_id:
+                            info_url = svc_id.rstrip('/') + '/info.json'
+                            lbl = canvas_label if canvas_label else svc_id.rsplit('/', 1)[-1]
+                            results.append((info_url, f'IIIF v3: {lbl}'))
+
+    else:
+        _log('  Manifest version not recognised')
+
+    return results
+
+
 def _scrape_generic_patterns(html: str, page_url: str) -> list[tuple[str, str]]:
     """Generic patterns: catch IIIF info.json, manifests, and DZI files
     that appear anywhere in the page source."""
@@ -570,7 +740,8 @@ def scrape_tile_url(page_url: str) -> list[tuple[str, str]]:
 
     # Run site-specific scrapers first
     candidates = []
-    for scraper in [_scrape_national_gallery, _scrape_rijksmuseum, _scrape_ngv]:
+    for scraper in [_scrape_national_gallery, _scrape_rijksmuseum, _scrape_ngv,
+                    _scrape_artic]:
         results = scraper(html, page_url)
         if results:
             candidates.extend(results)
@@ -587,6 +758,12 @@ def scrape_tile_url(page_url: str) -> list[tuple[str, str]]:
         if url not in seen:
             seen.add(url)
             deduped.append((url, label))
+
+    # Resolve any IIIF manifest URLs to info.json URLs.
+    # dezoomify-rs can't parse IIIF Presentation v2 manifests (which use
+    # @type/sc:Manifest). We fetch them ourselves and extract the image
+    # service info.json URLs that dezoomify-rs's IIIF dezoomer can handle.
+    deduped = _resolve_iiif_manifests(deduped)
 
     _log(f'Scraper found {len(deduped)} candidate(s)')
     for url, label in deduped:
