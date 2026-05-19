@@ -35,8 +35,8 @@ Each grab saves two files: the image and a JSON metadata sidecar containing the 
 
 ```
 ~/Pictures/dezoomify/
-  Paolo Uccello — The Battle of San Romano.jpg
-  Paolo Uccello — The Battle of San Romano.json
+  Lime Pot in the Shape of a Cat.jpg
+  Lime Pot in the Shape of a Cat.json
 ```
 
 Set `max_megapixels` in the Workflow's Configuration to cap output size. The default of `20` gives roughly 4500 × 4500 pixels; set it to `200` for ~14K × 14K. Leave it empty for full resolution — but be warned, some museum images exceed a gigapixel and will take a very long time to download.

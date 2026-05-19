@@ -34,7 +34,7 @@ Alfred also needs Accessibility permission for the "Selection in macOS" hotkey f
 
 ## Usage
 
-1. Navigate to a page containing a tiled image — [try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano).
+1. Navigate to a page containing a tiled image — [try this one](https://www.artic.edu/artworks/216746/cat).
 2. Select any relevant text on the page (title, artist, date — anything useful for citation later).
 3. Use the `dezoomify` keyword or the Hotkey (default <kbd>⌥</kbd><kbd>D</kbd>) to grab the image.
 4. The image and a JSON metadata sidecar (including your selected text) are saved to your configured folder.
@@ -68,8 +68,8 @@ v1.2 adds the scraping fallback. Currently supports the National Gallery (London
 Each grab produces two files in your save folder (default `~/Pictures/dezoomify/`):
 
 ```
-Paolo Uccello — The Battle of San Romano.jpg
-Paolo Uccello — The Battle of San Romano.json
+Lime Pot in the Shape of a Cat.jpg
+Lime Pot in the Shape of a Cat.json
 ```
 
 The JSON sidecar records provenance and technical details:
@@ -117,12 +117,13 @@ Arts & Culture works but resolution is capped by Google.
 
 ### Works via HTML scraping fallback
 
-| Site | Status | Notes |
+| Site | Status | Test URL | Notes |
 |---|---|---|
-| National Gallery, London | ✅ Working | IIPImage/IIIF tiles, TIFF path extracted from page source |
-| Rijksmuseum | 🔧 In progress | Micrio/IIIF tiles; currently picks up wrong image from related artworks |
-| NGV (National Gallery of Victoria) | ❌ Not yet tested | Zoomify tiles, todo |
-| Met Museum | ❌ FAILS | todo |
+| National Gallery, London | ✅ Working | https://www.nationalgallery.org.uk/paintings/edouard-manet-woman-with-a-cat  | IIPImage/IIIF tiles, TIFF path extracted from page source |
+| Art Institute of Chicago | ✅ Working | https://www.artic.edu/artworks/216746/cat | IIIF v2 path extracted from page source |
+| Rijksmuseum | 🔧 In progress | | Micrio/IIIF tiles; currently picks up wrong image from related artworks |
+| NGV (National Gallery of Victoria) | ❌ Not yet tested | | Zoomify tiles, todo |
+| Met Museum | ❌ FAILS | | todo |
 
 See [docs/dezoomify-test-cases.md](docs/dezoomify-test-cases.md) for more examples.
 
