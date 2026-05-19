@@ -45,7 +45,7 @@ Alfred also needs Accessibility permission for the "Selection in macOS" hotkey f
 
 Configure the Hotkey to grab directly from Safari or Chrome without opening Alfred.
 
-You will be prompted for an image title (prepoplated with selected text)
+You will be prompted for a title for the filename (prepoplated with selected text)
 
 ![Prompting for Title](images/save-as.png)
 
@@ -126,7 +126,7 @@ Arts & Culture works but resolution is capped by Google.
 ### Works via HTML scraping fallback
 
 | Site | Status | Test URL | Notes |
-|---|---|---|
+|---|---|---|---|
 | National Gallery, London | ✅ Working | https://www.nationalgallery.org.uk/paintings/edouard-manet-woman-with-a-cat  | IIPImage/IIIF tiles, TIFF path extracted from page source |
 | Art Institute of Chicago | ✅ Working | https://www.artic.edu/artworks/216746/cat | IIIF v2 path extracted from page source |
 | Rijksmuseum | 🔧 In progress | | Micrio/IIIF tiles; currently picks up wrong image from related artworks |
