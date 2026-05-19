@@ -45,13 +45,20 @@ Alfred also needs Accessibility permission for the "Selection in macOS" hotkey f
 
 Configure the Hotkey to grab directly from Safari or Chrome without opening Alfred.
 
-![Hotkey trigger saving an image](images/hotkey.png)
+You will be prompted for an image title (prepoplated with selected text)
+
+![Prompting for Title](images/save-as.png)
 
 ## How it works
 
 1. **Direct attempt** — passes the browser URL to dezoomify-rs, which tries all its built-in dezoomers (IIIF, Zoomify, DeepZoom, IIPImage, etc.).
+
 2. **Scraping fallback** — if that fails, fetches the page HTML and runs site-specific scrapers to find tile URLs hidden in JavaScript.
+
 3. **Manual paste** — if scraping finds nothing, shows a dialog where you can paste a tile URL from the browser's Network Inspector.
+
+![Prompting for tile URL](images/request-tiles-url.png)
+
 4. **Save** — writes the image and a JSON metadata sidecar to your configured folder.
 
 v1.2 adds the scraping fallback. Currently supports the National Gallery (London), with Rijksmuseum and NGV in progress.
@@ -104,7 +111,9 @@ When `max_megapixels` is set, the `-l` (largest) flag is not passed to dezoomify
 
 ### Works directly (dezoomify-rs auto-detects)
 
-Any site using standard IIIF, Zoomify, or DeepZoom with discoverable URLs. Google Arts & Culture works but resolution is capped by Google.
+Any site using standard IIIF, Zoomify, or DeepZoom with discoverable URLs. 
+
+Arts & Culture works but resolution is capped by Google.
 
 ### Works via HTML scraping fallback
 
@@ -112,11 +121,14 @@ Any site using standard IIIF, Zoomify, or DeepZoom with discoverable URLs. Googl
 |---|---|---|
 | National Gallery, London | ✅ Working | IIPImage/IIIF tiles, TIFF path extracted from page source |
 | Rijksmuseum | 🔧 In progress | Micrio/IIIF tiles; currently picks up wrong image from related artworks |
-| NGV (National Gallery of Victoria) | ❌ Not yet tested | Zoomify tiles |
+| NGV (National Gallery of Victoria) | ❌ Not yet tested | Zoomify tiles, todo |
+| Met Museum | ❌ FAILS | todo |
+
+See [docs/dezoomify-test-cases.md](docs/dezoomify-test-cases.md) for more examples.
 
 ### Manual paste required
 
-Any site where the tile URL isn't in the static HTML. Open the browser's Network Inspector, zoom into the image, find the tile request, and paste it when prompted.
+Any site where the tile URL isn't in the static HTML. Open the browser's Network Inspector, zoom into the image, find the tile request, and paste it when prompted. Look for tile requests containing server.iip, info.json, or ImageProperties.xml.
 
 ## Intellectual property and copyright
 
@@ -130,7 +142,7 @@ Images on the open web are subject to copyright law in the same way as any other
 | `dezoomify_save.py` | Python script — runs dezoomify-rs, scrapes tile URLs, prompts for filename, saves files |
 | `bin/dezoomify-rs` | Optional: bundled binary for portability (not yet working) |
 
-See [alfred-workflow-setup.md](alfred-workflow-setup.md) for details on wiring up the Alfred workflow objects if you're building from source rather than installing the `.alfredworkflow` file.
+See [docs/alfred-workflow-setup.md](docs/alfred-workflow-setup.md) for details on wiring up the Alfred workflow objects if you're building from source rather than installing the `.alfredworkflow` file.
 
 ## Debugging
 
@@ -167,7 +179,7 @@ Log lines are prefixed `[dezoomify]` and show each step of the pipeline:
 
 This workflow's code (Python scripts, JXA) is released under the [MIT licence](LICENCE).
 
-[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs) is a separate project by [lovasoa](https://github.com/lovasoa), licensed under [GPL-3.0](https://github.com/lovasoa/dezoomify-rs/blob/master/LICENSE). This workflow calls it as an external binary and does not modify or bundle it.
+[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs) is a separate project by [lovasoa](https://github.com/lovasoa), licensed under [GPL-3.0](https://github.com/lovasoa/dezoomify-rs/blob/master/LICENSE).
 
 ## Changelog
 

@@ -20,13 +20,16 @@ Grab a full-resolution tiled image from the current browser tab via the `dezoomi
 
 * <kbd>↩</kbd> Grab the image from the frontmost browser tab.
 
-The workflow detects IIIF, Zoomify, DeepZoom, and IIPImage viewers automatically. If the tiled image can't be found in the page source, a dialog appears where you can paste a tile URL from the browser's Network Inspector.
-
-![Paste dialog for manual tile URL](images/paste-dialog.png)
-
 Configure the Hotkey (default <kbd>⌥</kbd><kbd>D</kbd>) to grab directly from Safari or Chrome without opening Alfred.
 
-![Hotkey trigger saving an image](images/hotkey.png)
+The workflow will prompt you for a file name (prepopulated with selected text)
+
+![Paste dialog for manual tile URL](images/save-as.png)
+
+The workflow detects IIIF, Zoomify, DeepZoom, and IIPImage viewers automatically. If the tiled image can't be found in the page source, a dialog appears where you can paste a tile URL from the browser's Network Inspector. Open the browser Network Inspector, zoom into the image, and look for tile requests containing server.iip, info.json, or ImageProperties.xml.
+
+![Paste dialog for manual tile URL](images/request-tiles-url.png)
+
 
 Each grab saves two files: the image and a JSON metadata sidecar containing the source URL, page title, image dimensions, and any text you had selected.
 

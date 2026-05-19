@@ -2,7 +2,7 @@
 
 ## Who I am
 
-Kim (GitHub: mildlydiverting / ovdixon). Artist and drawing teacher. I use dezoomify-rs in an Alfred workflow to download high-res artwork images from museum sites. I've found a bug in how dezoomify-rs handles IIIF manifests and want to contribute a fix upstream. I also want to check whether the JS dezoomify web app has the same gap.
+Kim (GitHub: mildlydiverting ). Artist and drawing teacher. I use dezoomify-rs in an Alfred workflow to download high-res artwork images from museum sites. I've found a bug in how dezoomify-rs handles IIIF manifests and want to contribute a fix upstream. I also want to check whether the JS dezoomify web app has the same gap.
 
 British English throughout. Be direct, avoid effusiveness.
 

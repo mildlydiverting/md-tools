@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>com.mildlydiverting.dezoomify-nb</string>
+	<string>com.mildlydiverting.dezoomify</string>
 	<key>category</key>
 	<string>Internet</string>
 	<key>connections</key>
@@ -94,7 +94,7 @@
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>DeZoomify-no-binary</string>
+	<string>DeZoomify</string>
 	<key>objects</key>
 	<array>
 		<dict>
@@ -167,7 +167,7 @@
 				<key>subtext</key>
 				<string>Attempt to download a tiled image from the front webpage</string>
 				<key>text</key>
-				<string>DeZoomify-nb</string>
+				<string>DeZoomify</string>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -503,8 +503,10 @@ The Python script looks for it in this order:
 			<string>dezoomify_bin</string>
 		</dict>
 	</array>
+	<key>variablesdontexport</key>
+	<array/>
 	<key>version</key>
-	<string>1.2</string>
+	<string>1.2.2</string>
 	<key>webaddress</key>
 	<string>https://www.mildlydiverting.com/</string>
 </dict>
