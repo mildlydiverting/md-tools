@@ -24,7 +24,7 @@ Configure the Hotkey (default <kbd>⌥</kbd><kbd>D</kbd>) to grab directly from 
 
 The workflow will prompt you for a file name (prepopulated with selected text)
 
-![Paste dialog for manual tile URL](images/save-as.png)
+![Paste dialog for file name](images/save-as.png)
 
 The workflow detects IIIF, Zoomify, DeepZoom, and IIPImage viewers automatically. If the tiled image can't be found in the page source, a dialog appears where you can paste a tile URL from the browser's Network Inspector. Open the browser Network Inspector, zoom into the image, and look for tile requests containing server.iip, info.json, or ImageProperties.xml.
 
@@ -62,3 +62,5 @@ If a download takes a very long time or times out, set `max_megapixels` in the W
 If the saved image looks wrong or truncated, try changing `image_format` to `png` in the Workflow's Configuration. Some tile sources don't transcode cleanly to JPEG.
 
 Debug output is visible in Alfred's workflow debug console (click the bug icon in the workflow editor). Log lines are prefixed `[dezoomify]` and show each step of the pipeline.
+
+[Check GitHub for issues and more information](https://github.com/mildlydiverting/md-tools/tree/main/md-alfred-dezoomify).

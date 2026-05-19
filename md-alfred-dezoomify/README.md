@@ -76,16 +76,24 @@ The JSON sidecar records provenance and technical details:
 
 ```json
 {
-  "source_url": "https://www.nationalgallery.org.uk/paintings/...",
-  "tile_url": "https://www.nationalgallery.org.uk/server.iip?FIF=/fronts/N-0583-...tif",
-  "page_title": "Paolo Uccello — The Battle of San Romano",
+  "source_url": "https://www.artic.edu/artworks/216746/cat",
+  "tile_url": "https://www.artic.edu/iiif/2/bb7eaad0-08ac-03d8-107b-256983fef710/info.json",
+  "page_title": "Lime Pot in the Shape of a Cat",
   "notes": "Any text you had selected when you triggered the workflow",
   "saved_at": "2026-05-17T14:30:00.123456",
-  "image_file": "Paolo Uccello — The Battle of San Romano.jpg",
-  "image_width": 4000,
-  "image_height": 2613,
-  "file_size_bytes": 2456789,
-  "dezoomify_version": "2.13.0",
+  "image_file": "Lime Pot in the Shape of a Cat.jpg",
+  "image": {
+    "width_px": 2070,
+    "height_px": 2250,
+    "megapixels": 4.66,
+    "file_size_bytes": 779851,
+    "file_size_mb": 0.74
+  },
+  "capture": {
+    "dezoomify_rs_version": "dezoomify-rs 2.15.0",
+    "image_format": "jpg",
+    "max_megapixels_limit": 20.0
+  },
   "eagle_item_id": null
 }
 ```

@@ -1,13 +1,24 @@
 # Dezoomify-nb
 
-Get tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text currently selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
+Get tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
 
 Saves a stitched image plus a JSON metadata sidecar to a folder you configure. Works with Safari and Chrome.
 
+## Setup
+
+Install [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs) via Homebrew:
+
+```zsh
+brew install dezoomify-rs
+```
+
+Grant macOS Automation permission for your browser(s) when prompted on first run (System Settings → Privacy & Security → Automation).
+
+
 ## Usage
 
-1. Select any relevant text (eg. title, artist info and other metadata you might want to use in a citation later) on the page containing a tiled image [Try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano))
-2. Use the Hotkey or keyword `dezoom` to get the image
+1. Select any relevant text (eg. title, artist info and other metadata you might want to use in a citation later) on the page containing a tiled image. [Try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano))
+2. Use the Hotkey or keyword `dezoomify` to get the image
 3. The image and a JSON file containing metadata and the text selected will be saved in the folder you set in the workflow options.
 
 
@@ -24,8 +35,6 @@ Saves a stitched image plus a JSON metadata sidecar to a folder you configure. W
 ### Intellectual Property and Copyright of Images
 
 Images on the open web are subject to copyright law in the same manner as any other creative work; there is no guarantee that an image is legally available for re-use just because it is freely accessible on the web. It is your responsibility to check your intended use of the image is permitted under copyright law in your locality, or to clear your usage with the rights owner.
-
-More information in the [GitHub README](https://github.com/mildlydiverting/md-tools/tree/main/md-alfred-dezoomify)
 
 ---
 
@@ -46,6 +55,7 @@ JavaScript), the script fetches the page source and extracts tile URLs using
 site-specific scrapers. Currently supports the National Gallery (London), with
 Rijksmuseum and NGV in progress.
 
+More information in the [GitHub README](https://github.com/mildlydiverting/md-tools/tree/main/md-alfred-dezoomify)
 
 ---
 
@@ -53,11 +63,6 @@ Rijksmuseum and NGV in progress.
 
 **[dezoomify-rs](https://github.com/lovasoa/dezoomify-rs)** must be installed. (It should be bundled in the `bin` folder within this workflow, but I am new to this...)
 
-You can install via Homebrew:
-
-```zsh
-brew install dezoomify-rs
-```
 
 The Python script looks for it in this order:
 1. `./bin/dezoomify-rs` inside the workflow folder (bundled)
