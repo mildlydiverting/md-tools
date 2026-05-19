@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>com.mildlydiverting.dezoom</string>
+	<string>com.mildlydiverting.dezoomify-nb</string>
 	<key>category</key>
 	<string>Internet</string>
 	<key>connections</key>
@@ -94,7 +94,7 @@
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>md-DeZoomify</string>
+	<string>DeZoomify-no-binary</string>
 	<key>objects</key>
 	<array>
 		<dict>
@@ -144,8 +144,8 @@
 				<key>relatedApps</key>
 				<array>
 					<string>com.google.Chrome</string>
-					<string>org.mozilla.firefox</string>
 					<string>com.apple.Safari</string>
+					<string>org.mozilla.firefox</string>
 				</array>
 				<key>relatedAppsMode</key>
 				<integer>1</integer>
@@ -167,7 +167,7 @@
 				<key>subtext</key>
 				<string>Attempt to download a tiled image from the front webpage</string>
 				<key>text</key>
-				<string>DeZoomify</string>
+				<string>DeZoomify-nb</string>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -263,7 +263,7 @@
 		</dict>
 	</array>
 	<key>readme</key>
-	<string># Dezoomify
+	<string># Dezoomify-nb
 
 Get tiled images (IIIF, Zoomify, DeepZoom, IIPImage, etc.) plus any text currently selected on the current browser tab using [dezoomify-rs](https://github.com/lovasoa/dezoomify-rs).
 
@@ -396,9 +396,9 @@ The Python script looks for it in this order:
 			<key>config</key>
 			<dict>
 				<key>default</key>
-				<string>dezoom</string>
+				<string>dezoomify</string>
 				<key>placeholder</key>
-				<string>dezoom</string>
+				<string>dezoomify</string>
 				<key>required</key>
 				<false/>
 				<key>trim</key>
@@ -503,8 +503,6 @@ The Python script looks for it in this order:
 			<string>dezoomify_bin</string>
 		</dict>
 	</array>
-	<key>variablesdontexport</key>
-	<array/>
 	<key>version</key>
 	<string>1.2</string>
 	<key>webaddress</key>
