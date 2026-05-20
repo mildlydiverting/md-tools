@@ -144,8 +144,8 @@
 				<key>relatedApps</key>
 				<array>
 					<string>com.google.Chrome</string>
-					<string>com.apple.Safari</string>
 					<string>org.mozilla.firefox</string>
+					<string>com.apple.Safari</string>
 				</array>
 				<key>relatedAppsMode</key>
 				<integer>1</integer>
