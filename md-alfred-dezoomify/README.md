@@ -12,20 +12,6 @@ Alfred workflow to grab full-resolution tiled images (IIIF, Zoomify, DeepZoom, I
 brew install dezoomify-rs
 ```
 
-The workflow looks for the binary in this order:
-
-1. `./bin/dezoomify-rs` inside the workflow folder (bundled — not yet working, see below)
-2. `/opt/homebrew/bin/dezoomify-rs` (Homebrew, Apple Silicon)
-3. `/usr/local/bin/dezoomify-rs` (Homebrew, Intel)
-4. Anywhere on `$PATH`
-
-To bundle the binary for portability (work in progress):
-
-```zsh
-mkdir -p ~/path/to/workflow/bin
-cp /opt/homebrew/bin/dezoomify-rs ~/path/to/workflow/bin/
-```
-
 ### macOS permissions
 
 The workflow needs Automation permission for your browser(s). macOS will prompt on first run, or you can grant it in advance via System Settings → Privacy & Security → Automation.
@@ -145,13 +131,21 @@ Images on the open web are subject to copyright law in the same way as any other
 
 ## Files
 
+
 | File | Purpose |
 |---|---|
 | `get_browser_info.js` | JXA script — gets URL, page title, and selected text from the frontmost browser |
 | `dezoomify_save.py` | Python script — runs dezoomify-rs, scrapes tile URLs, prompts for filename, saves files |
-| `bin/dezoomify-rs` | Optional: bundled binary for portability (not yet working) |
 
-See [docs/alfred-workflow-setup.md](docs/alfred-workflow-setup.md) for details on wiring up the Alfred workflow objects if you're building from source rather than installing the `.alfredworkflow` file.
+
+The workflow looks for the dezoomify-rs binary in this order:
+
+1. `./bin/dezoomify-rs` inside the workflow folder (bundled — not yet working, see below)
+2. `/opt/homebrew/bin/dezoomify-rs` (Homebrew, Apple Silicon)
+3. `/usr/local/bin/dezoomify-rs` (Homebrew, Intel)
+4. Anywhere on `$PATH`
+
+See [docs/alfred-workflow-setup.md](docs/alfred-workflow-setup.md) for details on wiring up the Alfred workflow objects.
 
 ## Debugging
 
@@ -192,6 +186,7 @@ This workflow's code (Python scripts, JXA) is released under the [MIT licence](L
 
 ## Changelog
 
+- **v1.3** - remove bundled binary for dezoomify-rs
 - **v1.2** — HTML scraping fallback with site-specific scrapers (National Gallery confirmed working). Retry logic with cleanup between attempts. Manual URL paste dialog as last resort. Fixed `-l` / `--max-width` mutual exclusion. Logging to stderr. `tile_url` field in metadata sidecar.
 - **v1.1** — Extended metadata: dezoomify-rs version, image dimensions and file size (via sips), parsed title components, `eagle_item_id` placeholder. Added `max_megapixels` for size limiting.
 - **v1.0** — Initial release.
