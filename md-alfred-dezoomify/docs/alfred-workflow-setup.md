@@ -2,6 +2,7 @@
 
 These instructions are for wiring up the workflow objects in Alfred if you're building from source rather than installing a pre-built `.alfredworkflow` file. If you installed the workflow normally, you don't need any of this.
 
+See also https://www.alfredforum.com/topic/23834-dezoomify-workflow-plus-help-with-bundling-a-homebrew-dependency-within-a-workflow/#comment-124883
 
 ## Workflow objects
 

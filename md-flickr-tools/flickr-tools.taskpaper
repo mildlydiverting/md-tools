@@ -1,0 +1,6 @@
+Flickr Tools:
+	Fix TASL citation format:
+		- Current implementation collapses Title and Source into one linked element
+		- Should be proper four-part structure: Title / Author / Source / License
+		- Fix in both flickr_download.py and flickr_gallery_download.py at the same time
+		- Reference: https://wiki.creativecommons.org/wiki/best_practices_for_attribution#This_is_a_good_attribution
