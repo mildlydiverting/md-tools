@@ -250,9 +250,64 @@ def get_photo_info(flickr, photo_id):
     return resp.get('photo', {})
 
 
+# EXIF tags we want to capture, keyed by Flickr's label string.
+# Values become the key name in the exif sub-object.
+EXIF_TAGS = {
+    'Make':              'camera_make',
+    'Model':             'camera_model',
+    'Lens':              'lens',
+    'LensModel':         'lens_model',
+    'FNumber':           'aperture',
+    'ExposureTime':      'exposure',
+    'FocalLength':       'focal_length',
+    'FocalLengthIn35mmFormat': 'focal_length_35mm',
+    'ISO':               'iso',
+    'ISOSpeedRatings':   'iso',           # fallback label variant
+    'Flash':             'flash',
+    'ExposureMode':      'exposure_mode',
+    'WhiteBalance':      'white_balance',
+    'MeteringMode':      'metering_mode',
+    'Software':          'software',
+    'Artist':            'iptc_artist',
+    'Copyright':         'iptc_copyright',
+    'Special Instructions': 'iptc_instructions',
+    'Object Name':       'iptc_object_name',
+    'Credit':            'iptc_credit',
+    'Source':            'iptc_source',
+    'City':              'iptc_city',
+    'Province-State':    'iptc_state',
+    'Original Transmission Reference': 'iptc_transmission_ref',
+}
+
+def get_exif(flickr, photo_id):
+    """
+    Fetch EXIF/IPTC data for a photo. Returns a dict of selected fields,
+    or None if the owner has disabled EXIF access.
+    """
+    try:
+        resp = flickr.photos.getExif(photo_id=photo_id)
+        exif_list = resp.get('photo', {}).get('exif', [])
+    except Exception:
+        return None
+
+    result = {}
+    seen_keys = set()
+    for tag in exif_list:
+        label = tag.get('label', '')
+        if label in EXIF_TAGS:
+            key = EXIF_TAGS[label]
+            if key not in seen_keys:  # first occurrence wins
+                raw   = tag.get('raw',   {}).get('_content', '')
+                clean = tag.get('clean', {}).get('_content', raw)
+                result[key] = clean
+                seen_keys.add(key)
+
+    return result or None
+
+
 # ─── METADATA BUILDER ────────────────────────────────────────────────────────
 
-def build_metadata(photo_stub, photo_info, gallery_info, src_url, size_label):
+def build_metadata(photo_stub, photo_info, gallery_info, src_url, size_label, exif=None):
     """
     Assemble the metadata dict. Schema kept consistent with flickr_download.py.
     """
@@ -348,10 +403,11 @@ def build_metadata(photo_stub, photo_info, gallery_info, src_url, size_label):
         "license_id":           license_id,
         "license_name":         license_name,
         "license_url":          license_url,
-        "copyright_line":       None,
+        "copyright_line":       exif.get('iptc_copyright') if exif else None,
         "citation_markdown":    citation_markdown,
         "tasl":                 tasl,
         "location":             location_data,
+        "exif":                 exif,
     }
 
 
@@ -409,6 +465,10 @@ def process_gallery(flickr, gallery_info, reset=False):
         time.sleep(RATE_DELAY)
         photo_info = get_photo_info(flickr, photo_id)
 
+        # EXIF/IPTC (optional — some owners disable this)
+        time.sleep(RATE_DELAY)
+        exif = get_exif(flickr, photo_id)
+
         # Best available size
         time.sleep(RATE_DELAY)
         src_url, size_label, ext = get_best_size(flickr, photo_id)
@@ -423,7 +483,7 @@ def process_gallery(flickr, gallery_info, reset=False):
         json_path = os.path.join(out_dir, filename_base + '.json')
 
         # Build metadata
-        metadata = build_metadata(photo, photo_info, gallery_info, src_url, size_label)
+        metadata = build_metadata(photo, photo_info, gallery_info, src_url, size_label, exif=exif)
 
         # Download image
         print(f"    → {size_label}  {src_url[-50:]}")
