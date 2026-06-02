@@ -16,7 +16,7 @@ Grant macOS Automation permission for your browser(s) when prompted on first run
 
 ## Usage
 
-1. Select any relevant text (eg. title, artist info and other metadata you might want to use in a citation later) on the page containing a tiled image [Try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano))
+1. Select any relevant text (eg. title, artist info and other metadata you might want to use in a citation later) on a page containing a tiled image [Try this one](https://www.nationalgallery.org.uk/paintings/paolo-uccello-the-battle-of-san-romano))
 2. Use the Hotkey or keyword `dezoom` to get the image
 3. The image and a JSON file containing metadata and the text selected will be saved in the folder you set in the workflow options.
 
