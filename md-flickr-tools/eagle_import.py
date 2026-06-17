@@ -9,8 +9,8 @@ Usage:
 - Scans folder for image files with matching .json sidecars
 - Creates/finds Eagle folder by gallery title (from sidecar)
 - Imports image with name, url, tags, and YAML annotation block
-- Writes Eagle item ID back into the JSON sidecar (eagle_id field)
-- Skips items already imported (eagle_id present in sidecar)
+- Writes eagle_imported: true back into the JSON sidecar after import
+- Skips items already imported (eagle_imported present in sidecar)
 - Falls back gracefully if Eagle is not running
 
 Requires:
@@ -110,7 +110,7 @@ def eagle_add_item(image_path, name, website, tags, annotation, folder_id, dry_r
         return None
 
     item = {
-        "path": str(image_path),
+        "path": str(image_path.resolve()),
         "name": name,
         "website": website or "",
         "tags": tags or [],
@@ -122,11 +122,11 @@ def eagle_add_item(image_path, name, website, tags, annotation, folder_id, dry_r
         payload["folderId"] = folder_id
 
     r = requests.post(f"{EAGLE_API}/item/addFromPaths", json=payload, timeout=30)
-    r.raise_for_status()
-    data = r.json().get("data", [])
-    if data:
-        return data[0].get("id")
-    return None
+    if not r.ok:
+        print(f"  ERROR {r.status_code}: {r.text[:300]}")
+        r.raise_for_status()
+    # addFromPaths returns {status: success} only — no item IDs
+    return "imported"
 
 
 # ---------------------------------------------------------------------------
@@ -135,55 +135,38 @@ def eagle_add_item(image_path, name, website, tags, annotation, folder_id, dry_r
 
 def build_annotation(meta):
     """
-    Build the YAML annotation block from the canonical Flickr sidecar fields.
+    Build the annotation block for Eagle.
+    Format: YAML front matter wrapped in --- dividers, followed by the plain-text citation.
     Field names match the output of flickr_download.py / flickr_gallery_download.py.
     """
-    lines = {}
+    fields = {}
 
-    creator = meta.get("creator")
-    if creator:
-        lines["creator"] = creator
+    for dest, src in [
+        ("creator",       "creator"),
+        ("creator_url",   "creator_profile_url"),
+        ("date_created",  "date_created"),
+        ("medium",        "medium"),
+        ("license",       "license_name"),
+        ("license_url",   "license_url"),
+        ("source_url",    "accessed_url"),
+        ("copyright_line","copyright_line"),
+        ("tasl",          "tasl"),
+        ("citation",      "citation_markdown"),
+    ]:
+        val = meta.get(src)
+        if val:
+            fields[dest] = str(val)
 
-    creator_url = meta.get("creator_profile_url")
-    if creator_url:
-        lines["creator_url"] = creator_url
-
-    date = meta.get("date_created")
-    if date:
-        lines["date_created"] = str(date)
-
-    medium = meta.get("medium")
-    if medium:
-        lines["medium"] = medium
-
-    license_name = meta.get("license_name")
-    if license_name:
-        lines["license"] = license_name
-
-    license_url = meta.get("license_url")
-    if license_url:
-        lines["license_url"] = license_url
-
-    source_url = meta.get("accessed_url")
-    if source_url:
-        lines["source_url"] = source_url
-
-    copyright_line = meta.get("copyright_line")
-    if copyright_line:
-        lines["copyright_line"] = copyright_line
-
-    tasl = meta.get("tasl")
-    if tasl:
-        lines["tasl"] = tasl
-
-    citation = meta.get("citation_markdown")
-    if citation:
-        lines["citation"] = citation
-
-    if not lines:
+    if not fields:
         return ""
 
-    return yaml.dump(lines, allow_unicode=True, default_flow_style=False, sort_keys=False).strip()
+    yaml_block = yaml.dump(fields, allow_unicode=True, default_flow_style=False, sort_keys=False).strip()
+    front_matter = f"---\n{yaml_block}\n---"
+
+    citation = fields.get("citation", "")
+    if citation:
+        return f"{front_matter}\n\n{citation}"
+    return front_matter
 
 
 def load_sidecar(json_path):
@@ -259,8 +242,8 @@ def import_folder(folder_path, dry_run=False):
             continue
 
         # Skip if already imported
-        if meta.get("eagle_id"):
-            print(f"  SKIP: already imported (eagle_id: {meta['eagle_id']})")
+        if meta.get("eagle_imported") or meta.get("eagle_id"):
+            print(f"  SKIP: already imported")
             skipped += 1
             continue
 
@@ -291,12 +274,12 @@ def import_folder(folder_path, dry_run=False):
 
         if not dry_run:
             if eagle_id:
-                meta["eagle_id"] = eagle_id
+                meta["eagle_imported"] = True
                 save_sidecar(sidecar_path, meta)
-                print(f"  Imported. eagle_id: {eagle_id}")
+                print(f"  Imported.")
                 imported += 1
             else:
-                print(f"  WARNING: Import call succeeded but no ID returned.")
+                print(f"  WARNING: Import call succeeded but no confirmation returned.")
                 failed += 1
         else:
             imported += 1  # count dry-run "would import" as success for summary
