@@ -30,6 +30,11 @@ Python 3.12+ recommended.
 
 ## Usage
 
+python flickr_gallery_download.py                          # All your galleries
+    python flickr_gallery_download.py --gallery-url URL        # Specific gallery by URL
+    python flickr_gallery_download.py --gallery-id GALLERY_ID  # Specific gallery by ID
+    python flickr_gallery_download.py --reset                  # Re-download everything
+
 ```bash
 # Normal run — skips already-downloaded images
 python flickr_download.py
