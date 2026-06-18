@@ -15,6 +15,15 @@ A suite of tools for downloading and archiving images from online sources (start
 
 Kim is an artist and drawing teacher based in East Kent. She uses reference images extensively in her teaching practice and personal work. She has a strong background in digital/media production and content strategy, and is comfortable with technical tools. Her practice emphasises accessibility, proper attribution, and working generously with source material.
 
+## Scripts in this suite
+
+| Script | Status | Notes |
+|---|---|---|
+| `flickr_download.py` | ✅ Working | Downloads Flickr favourites with JSON sidecars |
+| `flickr_gallery_download.py` | ✅ Working | Downloads Flickr galleries with JSON sidecars |
+| `eagle_import.py` | ✅ Working | Imports image+sidecar pairs into Eagle via Web API v2 |
+| `flickr_fix_citations.py` | ✅ Working | Backfills/fixes `citation_markdown` + `tasl` in existing sidecars |
+
 ## Design decisions made so far
 
 ### Metadata schema
@@ -38,7 +47,7 @@ Key fields and why:
 
 ### Citation formats
 
-Two citation formats are pre-built into every JSON file:
+Two citation formats are pre-built into every JSON sidecar:
 
 **Harvard-adjacent:**
 ```
@@ -50,17 +59,60 @@ Author (yyyy). _Title_. [Medium]. Institution, Location. Available at [URL](URL)
 [Title](page url) — [Author](profile url) — [Licence](url)
 ```
 
+Both fields may need backfilling if sidecars were downloaded with an older version of the script (pre-June 2026) — use `flickr_fix_citations.py --recursive` for this.
+
+### Eagle annotation format
+
+The Eagle annotation field holds a YAML front matter block (for machine readability), followed by the plain-text citation (for human readability), followed by machine tags if present:
+
+```
+---
+creator: ...
+creator_url: ...
+date_created: ...
+medium: Photograph
+license: ...
+license_url: ...
+source_url: ...
+tasl: '...'
+citation: ...
+---
+
+Plain text citation here.
+
+tags:
+  taxonomy:binomial=Phyllactinia guttata
+  dc:identifier=http://...
+```
+
+### Machine tags
+
+Flickr (and especially BHL/biodiversity images) can carry hundreds of machine tags in `namespace:value` format — `bookid:`, `taxonomy:`, `dc:`, `bhl:`, `geo:`, `sherlocknet:`, `artist:`, etc. These are:
+- **Excluded** from Eagle's tags field (keeps tags clean for human use)
+- **Appended** to the annotation block under a `tags:` section (preserves the data)
+
+The filter rule: any tag matching `\w+:.+` is a machine tag.
+
 ### HTML in descriptions
 
-Flickr descriptions can contain HTML with links and structured content. Decision: preserve as-is, label with `description_format: "html"`. Do not strip. Anything consuming the JSON should check `description_format` to decide whether to render or display as plain text.
+Flickr descriptions can contain HTML. Decision: preserve as-is, label with `description_format: "html"`. Do not strip. Anything consuming the JSON should check `description_format`.
 
 ### Tags
 
-Stored as an array (not a space-separated string) for ease of downstream processing.
+Stored as an array (not a space-separated string). `tags_normalised` is explicitly out of scope for all importer scripts — it will be a future standalone cross-platform tag normalisation tool.
 
 ### Image sizing
 
-Largest available up to X-Large 3K (3072px on longest side). Falls through gracefully if the owner has restricted downloads. Size label is stored in `size_label` so you know what you got.
+Largest available up to X-Large 3K (3072px on longest side). Falls through gracefully if the owner has restricted downloads. Size label stored in `size_label`.
+
+### Eagle import notes
+
+- API endpoint: `POST /api/item/addFromPaths` (v1 API, port 41595)
+- `folderId` is a top-level parameter on the payload, not per-item
+- Folder create uses `{"folderName": "..."}` and returns `data` as a single object
+- `addFromPaths` returns `{"status": "success"}` only — no item IDs. We write `eagle_imported: true` to the sidecar instead
+- Image path must be absolute (use `Path.resolve()`)
+- Eagle must be open and running before import
 
 ### Flickr API notes
 
@@ -69,7 +121,7 @@ Largest available up to X-Large 3K (3072px on longest side). Falls through grace
 - `posted` date is always a UTC Unix timestamp
 - `takengranularity`: 0=exact datetime, 4=month precision, 6=year precision, 8=circa
 - Location is only returned if the photographer made it public
-- `photos.getInfo` and `photos.getSizes` are called once per unique photo — these are the expensive calls
+- `photos.getInfo` and `photos.getSizes` are called once per unique photo
 
 ### Rate limiting
 
@@ -77,39 +129,34 @@ Largest available up to X-Large 3K (3072px on longest side). Falls through grace
 
 ### Manifest
 
-`_manifest.json` in the output folder tracks downloaded photos by ID. Re-runs skip anything in the manifest. `--reset` flag deletes the manifest. The manifest is gitignored (it lives alongside the downloaded files).
+`_manifest.json` / `_gallery_manifest.json` in each output folder tracks downloaded photos by ID. Re-runs skip anything in the manifest. `--reset` flag deletes the manifest. Manifests are gitignored.
 
-## Repo structure (intended)
+## Repo structure
 
 ```
-md-flickr-tools/          # or a broader md-image-tools suite name
+md-flickr-tools/
   flickr_download.py
+  flickr_gallery_download.py
+  eagle_import.py
+  flickr_fix_citations.py
   .env                    # never committed
   .env.example            # committed, with placeholder values
   .gitignore
   README.md
   TODO.md
   CONTEXT.md              # this file
+  metadata-mapping.md
   flickr_downloads/       # gitignored
 ```
 
 ## Tools / integrations on the roadmap
 
-- **Are.na** — Kim is already connected to the Are.na API via Claude. Need to map JSON schema to Are.na block fields.
-- **Obsidian** — generate `.md` files with YAML frontmatter from JSON. Kim has existing Pinterest → markdown work to align with.
-- **Eagle** — image management app. Need to investigate Eagle's import format and whether citation JSON can be attached to items.
-- **Keynote** — generate citation/reference slides from JSON data. Image + title + creator + citation + TASL.
-- **Source shims** — The Met has a good public API. Tate has an API. Wikimedia Commons has an API. Google Arts & Culture is harder (likely scraping). ArtUK TBD.
+- **Are.na** — map JSON schema to Are.na block fields; write `arena_upload.py`
+- **Obsidian** — generate `.md` files with YAML frontmatter from JSON sidecars
+- **Eagle inspector plugin** — display and write-back attribution YAML for selected Eagle items; started in earlier session (blank window bug — likely manifest config issue)
+- **Keynote** — generate citation/reference slides from JSON data
+- **Source shims** — The Met (good public API), Tate (API), Wikimedia Commons (API), Google Arts & Culture (likely scraping), ArtUK (TBD)
 
 ## Secrets / API key management
 
-Decision pending: standardise on `.env` + `python-dotenv`. Currently API keys are hardcoded in the script — this must be fixed before any public repo push. Single shared `.env` at suite root vs per-tool `.env` TBD.
-
-## Related work
-
-Kim has existing work on:
-- Pinterest image downloads with markdown output
-- Python invoice processing scripts (versioned, with changelogs, dry-run modes)
-- Bulk PDF download automation
-
-The metadata schema and markdown output patterns from the Pinterest work should be reviewed for alignment before building the Obsidian integration.
+`.env` + `python-dotenv`. API keys go in `.env` (gitignored). Flickr OAuth token cached at `~/.flickr/`. venv at `/Users/kimplowright/Development/bins/`.

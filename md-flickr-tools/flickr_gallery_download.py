@@ -56,7 +56,7 @@ RATE_DELAY = 0.5
 # Image size preference, largest first, capped at ~3K.
 # Falls through to next if a size isn't available.
 SIZE_PREFERENCE = [
-    "X-Large 3K",   # 3072px
+ #   "X-Large 3K",   # 3072px
     "Large 2048",   # 2048px
     "Large 1600",   # 1600px
     "Large",        # 1024px

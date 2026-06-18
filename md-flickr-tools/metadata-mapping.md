@@ -46,7 +46,7 @@ Fields marked ⚠️ are consistently missing or unreliable in practice.
 | `wikidata_qid` | string | Wikidata Q-number for the *artwork* ⚠️ |
 | `iiif_manifest_url` | string | IIIF manifest if available ⚠️ |
 | `obsidian_note_path` | string | Vault-relative path of linked Obsidian note |
-| `eagle_item_id` | string | Eagle item ID once imported |
+| `eagle_imported` | boolean | True once imported into Eagle (API returns no item ID) |
 | `arena_block_id` | string | Are.na block ID once posted |
 
 ### gallery sub-object
@@ -164,31 +164,45 @@ Fields marked ⚠️ are consistently missing or unreliable in practice.
 
 ## Destination mappings (what each destination can receive)
 
-### Eagle (Web API v2 / Plugin API)
+### Eagle (Web API v1 — `localhost:41595`)
 | Canonical field | Eagle field | Method | Notes |
 |---|---|---|---|
-| `title` | `name` | API / Plugin | |
-| `source_url` | `website` | API / Plugin | Shown as source link |
-| `tags` + `tags_normalised` | `tags` | API / Plugin | Merge both arrays |
-| `citation_markdown` | `annotation` | API / Plugin | Primary use of annotation |
-| `tasl` | `annotation` (appended) | API / Plugin | |
-| `gallery.title` | `folders` | API | Map to Eagle folder by name |
-| `creator`, `date_created`, `license_name`, `medium`, `dimensions`, `institution` | `annotation` (as YAML block) | Plugin | Full structured block |
-| `eagle_item_id` | — | write back to JSON | Record after import |
+| `title` | `name` | `addFromPaths` | |
+| `accessed_url` | `website` | `addFromPaths` | Shown as source link |
+| `tags` (human only) | `tags` | `addFromPaths` | Machine tags excluded — see below |
+| `gallery_title` | `folderId` | `addFromPaths` | Folder created/matched by name; favourites unfoldered |
+| Full attribution block | `annotation` | `addFromPaths` | YAML front matter + citation + machine tags |
+| `eagle_imported` | — | write back to JSON | Boolean flag; no item ID returned by API |
 
-**Annotation structure** (stored as a YAML block in the annotation field):
-```yaml
+**Tag handling:** Flickr machine tags (`namespace:value` — `bookid:`, `taxonomy:`, `dc:`, `bhl:`, `geo:`, `sherlocknet:`, `artist:`, etc.) are excluded from Eagle's tags field and appended to the annotation instead, to keep tags human-readable.
+
+**Annotation structure:**
+```
+---
 creator: Josef Sudek
-date_created: 1952
+creator_url: https://www.flickr.com/photos/.../
+date_created: '1952'
 medium: Photograph
-institution: ~
 license: CC BY 2.0
 license_url: https://creativecommons.org/licenses/by/2.0/
-source: https://www.flickr.com/photos/.../
-tasl: "[Title](url) — [Creator](url) — [CC BY 2.0](url)"
-citation: "Sudek, J. (1952). _Window_. Available at https://... (Accessed 24 May 2026)."
-obsidian_note: Reference/Drawing/Sudek-window.md
+source_url: https://www.flickr.com/photos/.../
+tasl: '[Window](...) — [Josef Sudek](...) — [CC BY 2.0](...)'
+citation: Sudek, J. (1952). _Window_. [Photograph]. Available at [...](...) (Accessed 24 May 2026). Licensed under [CC BY 2.0](...).
+---
+
+Sudek, J. (1952). _Window_. [Photograph]. Available at [...](...) (Accessed 24 May 2026). Licensed under [CC BY 2.0](...).
+
+tags:
+  taxonomy:binomial=Phyllactinia guttata
+  dc:identifier=http://biodiversitylibrary.org/page/...
 ```
+
+**API notes:**
+- Endpoint: `POST /api/item/addFromPaths` (v1, not v2)
+- `folderId` is a top-level payload parameter, not per-item
+- Folder create: `POST /api/folder/create` with `{"folderName": "..."}` — returns folder as single object in `data`
+- Image path must be absolute (`Path.resolve()`) or Eagle returns ENOENT
+- `addFromPaths` returns `{"status": "success"}` only — no item IDs
 
 ### Are.na (API v3)
 | Canonical field | Are.na field | Notes |
@@ -208,7 +222,7 @@ obsidian_note: Reference/Drawing/Sudek-window.md
 | `institution` | `institution` | |
 | `license_name` | `license` | |
 | `source_url` | `source` | |
-| `eagle_item_id` | `eagle_id` | Link back to Eagle |
+| `eagle_imported` | `eagle_imported` | Boolean flag — no item ID available from Eagle API |
 | `arena_block_id` | `arena_block` | Link back to Are.na |
 | `tags_normalised` | `tags` | Use your tag ontology |
 | `citation_markdown` | `citation` | |
@@ -261,6 +275,6 @@ Getty LOD: `https://vocab.getty.edu/sparql`
 
 - `tags_normalised`: applying your tag ontology (`@` people, `#` topics, `col:`, `project:`, `class:`) is a manual or semi-manual step — needs a normalisation pass, not an automatic one
 - `medium` and `dimensions` are absent from Flickr entirely — consider a manual enrichment field in the JSON
-- Obsidian ↔ Eagle link: best maintained via `eagle_item_id` in Obsidian frontmatter + `obsidian_note_path` in Eagle annotation YAML — needs a sync script
+- Obsidian ↔ Eagle link: Eagle API v1 returns no item IDs on import, so we can't link directly from Obsidian to a specific Eagle item. Best current approach: match by `accessed_url` / `source_url`. May be possible via Eagle Plugin API (`eagle.item.getSelected()`) in a future inspector plugin.
 - Are.na post-back: write a separate `arena_upload.py` that reads the canonical JSON and constructs the block
 - LIDO and Europeana EDM are comprehensive museum standards but probably overkill for personal use — worth knowing for cross-referencing institution APIs
