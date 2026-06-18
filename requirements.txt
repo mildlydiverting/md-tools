@@ -1,0 +1,19 @@
+# md-tools — Python dependencies
+# ================================
+# Shared venv for all scripts in this suite.
+#
+# Setup:
+#   cd ~/Development/md-tools
+#   /usr/local/opt/python@3.14/bin/python3.14 -m venv .venv
+#   source .venv/bin/activate
+#   pip install -r requirements.txt
+#
+# Activate before running any script:
+#   source ~/Development/md-tools/.venv/bin/activate
+
+# ── Flickr API (md-flickr-tools) ─────────────────────────────────────────────
+flickrapi>=2.4          # Flickr API client (pulls in oauthlib, requests-oauthlib)
+requests>=2.28          # HTTP (also used by md-ember-to-eagle, md-alfred-dezoomify)
+
+# ── Environment variable management ──────────────────────────────────────────
+python-dotenv>=1.0      # Load .env files (used by md-flickr-tools)
