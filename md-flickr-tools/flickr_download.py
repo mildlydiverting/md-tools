@@ -332,15 +332,12 @@ def download_image(url, filepath):
         for chunk in r.iter_content(chunk_size=8192):
             f.write(chunk)
 
-def safe_filename(s, max_len=60):
-    return "".join(c if c.isalnum() or c in ' _-' else '_' for c in s)[:max_len].strip()
 
 def process_photo(flickr, photo_id, entry, output_dir, manifest):
     photo = entry['photo']
     title = photo.get('title', '') or photo_id
-    base  = f"{photo_id}_{safe_filename(title)}"
-    img_path  = os.path.join(output_dir, f"{base}.jpg")
-    json_path = os.path.join(output_dir, f"{base}.json")
+    img_path  = os.path.join(output_dir, f"{photo_id}.jpg")
+    json_path = os.path.join(output_dir, f"{photo_id}.json")
 
     if photo_id in manifest:
         print(f"  [skip]  {title}")
@@ -512,7 +509,7 @@ def process_photo(flickr, photo_id, entry, output_dir, manifest):
 
     manifest[photo_id] = {
         'date_accessed': date_accessed,
-        'filename':      f"{base}.jpg",
+        'filename':      f"{photo_id}.jpg",
         'size_label':    size_label,
     }
 

@@ -282,7 +282,7 @@ def import_folder(folder_path, dry_run=False, recursive=False):
             folder_id = folder_id_cache[gallery_title]
 
         # Build fields
-        name = meta.get("title") or image_path.stem
+        name = meta.get("photo_id") or image_path.stem
         website = meta.get("accessed_url") or ""
         all_tags = meta.get("tags") or []
         tags, machine_tags = split_tags(all_tags)
