@@ -130,6 +130,24 @@ def eagle_add_item(image_path, name, website, tags, annotation, folder_id, dry_r
 
 
 # ---------------------------------------------------------------------------
+import re as _re
+
+MACHINE_TAG_RE = _re.compile(r'^[A-Za-z][A-Za-z0-9_]*:.+')
+
+def split_tags(tags):
+    """
+    Split a flat tag list into (human_tags, machine_tags).
+    Machine tags match namespace:value pattern (e.g. taxonomy:binomial=..., dc:identifier=...).
+    """
+    human, machine = [], []
+    for tag in (tags or []):
+        if MACHINE_TAG_RE.match(tag):
+            machine.append(tag)
+        else:
+            human.append(tag)
+    return human, machine
+
+
 # Sidecar helpers
 # ---------------------------------------------------------------------------
 
@@ -164,9 +182,15 @@ def build_annotation(meta):
     front_matter = f"---\n{yaml_block}\n---"
 
     citation = fields.get("citation", "")
+    machine_tags = meta.get("_machine_tags", [])
+
+    parts = [front_matter]
     if citation:
-        return f"{front_matter}\n\n{citation}"
-    return front_matter
+        parts.append(citation)
+    if machine_tags:
+        parts.append("tags:\n" + "\n".join(f"  {t}" for t in machine_tags))
+
+    return "\n\n".join(parts)
 
 
 def load_sidecar(json_path):
@@ -189,13 +213,14 @@ def save_sidecar(json_path, meta):
 # Core import logic
 # ---------------------------------------------------------------------------
 
-def find_pairs(folder):
+def find_pairs(folder, recursive=False):
     """
     Yield (image_path, json_path) tuples for all image+sidecar pairs in folder.
     Matches by stem: photo.jpg + photo.jpg.json (or photo.json).
     """
     folder = Path(folder)
-    for image_path in sorted(folder.iterdir()):
+    pattern = "**/*" if recursive else "*"
+    for image_path in sorted(folder.glob(pattern)):
         if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
             continue
         # Try both naming conventions: photo.jpg.json and photo.json
@@ -208,7 +233,7 @@ def find_pairs(folder):
             print(f"  SKIP (no sidecar): {image_path.name}")
 
 
-def import_folder(folder_path, dry_run=False):
+def import_folder(folder_path, dry_run=False, recursive=False):
     folder = Path(folder_path)
     if not folder.is_dir():
         print(f"ERROR: Not a directory: {folder_path}")
@@ -219,9 +244,10 @@ def import_folder(folder_path, dry_run=False):
         print("Please open Eagle and ensure the MCP plugin is active, then retry.")
         sys.exit(1)
 
-    print(f"\nScanning: {folder}\n")
+    suffix = " (recursive)" if recursive else ""
+    print(f"\nScanning: {folder}{suffix}\n")
 
-    pairs = list(find_pairs(folder))
+    pairs = list(find_pairs(folder, recursive=recursive))
     if not pairs:
         print("No image+sidecar pairs found.")
         return
@@ -258,8 +284,11 @@ def import_folder(folder_path, dry_run=False):
         # Build fields
         name = meta.get("title") or image_path.stem
         website = meta.get("accessed_url") or ""
-        tags = meta.get("tags") or []
+        all_tags = meta.get("tags") or []
+        tags, machine_tags = split_tags(all_tags)
+        meta["_machine_tags"] = machine_tags  # temp field for build_annotation
         annotation = build_annotation(meta)
+        meta.pop("_machine_tags", None)  # remove temp field
 
         # Import
         eagle_id = eagle_add_item(
@@ -304,6 +333,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Print what would be imported without making any changes",
     )
+    parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="Recurse into subfolders",
+    )
     args = parser.parse_args()
 
-    import_folder(args.folder, dry_run=args.dry_run)
+    import_folder(args.folder, dry_run=args.dry_run, recursive=args.recursive)
