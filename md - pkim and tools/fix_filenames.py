@@ -7,7 +7,9 @@ Fixes filenames for Dropbox compatibility. Handles two structures:
   1. Eagle .info folders  (mode: eagle)
      Each item lives in  <id>.info/  containing the image and metadata.json.
      The image is named  <metadata.name>.<metadata.ext>.
-     We sanitise the name to ASCII-safe, rename the image, update metadata.json.
+     For Flickr-sourced items, renames to the Flickr photo ID (extracted from
+     the source_url in the annotation). Falls back to ASCII-safe title for
+     non-Flickr items.
 
   2. Flickr download folders  (mode: flickr)
      Old style:  <photo_id>_<title>.jpg  +  <photo_id>_<title>.json
@@ -34,8 +36,19 @@ import json
 import os
 import re
 import sys
+import time
 import unicodedata
 from pathlib import Path
+
+
+# ─── FLICKR ID EXTRACTION ────────────────────────────────────────────────────
+
+_FLICKR_ID_RE = re.compile(r'flickr\.com/photos/[^/]+/(\d+)')
+
+def extract_flickr_id(annotation: str) -> str | None:
+    """Pull Flickr photo ID from source_url in the annotation block."""
+    match = _FLICKR_ID_RE.search(annotation or '')
+    return match.group(1) if match else None
 
 
 # ─── SANITISER ───────────────────────────────────────────────────────────────
@@ -129,7 +142,10 @@ def fix_eagle_folder(root: Path, dry_run: bool) -> None:
             skipped += 1
             continue
 
-        new_name = safe_filename(name)
+        # Prefer Flickr photo ID (pure digits, always safe); fall back to
+        # ASCII-sanitised title for non-Flickr items.
+        flickr_id = extract_flickr_id(meta.get('annotation', ''))
+        new_name  = flickr_id if flickr_id else safe_filename(name)
 
         if new_name == name:
             skipped += 1
@@ -148,16 +164,22 @@ def fix_eagle_folder(root: Path, dry_run: bool) -> None:
             changed += 1
             continue
 
-        # Rename image file if it exists
+        # Rename image file — track whether it succeeded before touching metadata.json
+        image_renamed = False
+
         if old_img and old_img.exists():
             if new_img and not new_img.exists():
                 old_img.rename(new_img)
                 print(f"    renamed: {old_img.name} → {new_img.name}")
+                image_renamed = True
             elif new_img and new_img.exists():
+                # Target already exists — check if it's the right file
                 print(f"    [warn] target already exists: {new_img.name} — skipping rename")
+                image_renamed = True  # name in metadata.json still needs updating
         else:
-            # Try to find the file by extension
-            candidates = [f for f in info_dir.iterdir() if f.suffix.lstrip('.').lower() == ext.lower()
+            # Primary path not found — search by extension as fallback
+            candidates = [f for f in info_dir.iterdir()
+                          if f.suffix.lstrip('.').lower() == ext.lower()
                           and f.name != 'metadata.json']
             if len(candidates) == 1:
                 old_img = candidates[0]
@@ -165,18 +187,139 @@ def fix_eagle_folder(root: Path, dry_run: bool) -> None:
                 if not new_img.exists():
                     old_img.rename(new_img)
                     print(f"    renamed: {old_img.name} → {new_img.name}")
+                    image_renamed = True
+                else:
+                    print(f"    [warn] target already exists: {new_img.name}")
+                    image_renamed = True
+            elif len(candidates) == 0:
+                print(f"    [error] No image file found in {info_dir.name} — skipping metadata update")
             else:
-                print(f"    [warn] Could not find image file for {name}.{ext}")
+                print(f"    [error] Multiple image files in {info_dir.name}, cannot determine which to rename:")
+                for c in candidates:
+                    print(f"      {c.name}")
 
-        # Update metadata.json
-        meta['name'] = new_name
-        with open(metadata_path, 'w', encoding='utf-8') as f:
-            json.dump(meta, f, indent=2, ensure_ascii=False)
-        print(f"    updated metadata.json")
+        # Only update metadata.json if the image situation is resolved
+        if image_renamed:
+            meta['name'] = new_name
+            # Stamp lastModified to now so Eagle treats our version as authoritative
+            meta['lastModified'] = int(time.time() * 1000)
+            # Clear noThumbnail so Eagle regenerates the preview
+            meta.pop('noThumbnail', None)
+            with open(metadata_path, 'w', encoding='utf-8') as f:
+                json.dump(meta, f, indent=2, ensure_ascii=False)
+            print(f"    updated metadata.json")
+        else:
+            print(f"    [skipped] metadata.json not updated — image rename failed")
 
         changed += 1
 
     print(f"\nDone. {changed} item(s) {'would be ' if dry_run else ''}fixed, {skipped} skipped.")
+
+
+# ─── EAGLE REPAIR MODE ───────────────────────────────────────────────────────
+
+def repair_eagle_folder(root: Path, dry_run: bool, show_bad_json: bool = False, fix_bad_json: bool = False) -> None:
+    """
+    Scan Eagle .info folders for mismatches between metadata.json name and
+    the actual image file on disk. Fixes by updating metadata.json to match
+    whatever image file is present.
+
+    This repairs the state left by a partial run of fix_eagle_folder() where
+    the image was renamed but metadata.json was not updated (or vice versa).
+    """
+    info_dirs = sorted(root.rglob('*.info'))
+    if not info_dirs:
+        print(f"No .info folders found under {root}")
+        return
+
+    fixed = 0
+    ok = 0
+    errors = 0
+
+    for info_dir in info_dirs:
+        if not info_dir.is_dir():
+            continue
+
+        metadata_path = info_dir / 'metadata.json'
+        if not metadata_path.exists():
+            continue
+
+        try:
+            with open(metadata_path, encoding='utf-8') as f:
+                meta = json.load(f)
+        except json.JSONDecodeError as e:
+            raw = metadata_path.read_text(encoding='utf-8', errors='replace')
+            if show_bad_json:
+                snippet = raw[max(0, e.pos - 80): e.pos + 80]
+                print(f"  [error] Bad JSON in {metadata_path}: {e}")
+                print(f"    context around error (char {e.pos}):")
+                print(f"    ...{snippet!r}...")
+            # Try recovering the first valid JSON object (handles concatenation)
+            try:
+                meta, _ = json.JSONDecoder().raw_decode(raw)
+                print(f"  [recover] {info_dir.name}: parsed first JSON object successfully")
+                if fix_bad_json and not dry_run:
+                    meta['lastModified'] = int(time.time() * 1000)
+                    meta.pop('noThumbnail', None)
+                    with open(metadata_path, 'w', encoding='utf-8') as f:
+                        json.dump(meta, f, indent=2, ensure_ascii=False)
+                    print(f"    rewrote metadata.json (removed trailing garbage)")
+                elif fix_bad_json and dry_run:
+                    print(f"    [DRY RUN] would rewrite metadata.json")
+            except json.JSONDecodeError:
+                print(f"  [error] Bad JSON in {metadata_path}: {e} (unrecoverable)")
+                errors += 1
+                continue
+
+        name = meta.get('name', '')
+        ext  = meta.get('ext', '')
+
+        if not name or not ext:
+            continue
+
+        expected_file = info_dir / f"{name}.{ext}"
+
+        # Find what image files are actually present
+        image_files = [f for f in info_dir.iterdir()
+                       if f.suffix.lstrip('.').lower() == ext.lower()
+                       and f.name != 'metadata.json']
+
+        if expected_file.exists():
+            ok += 1
+            continue  # all good
+
+        if len(image_files) == 0:
+            print(f"  [error] {info_dir.name}: no image file at all")
+            errors += 1
+            continue
+
+        if len(image_files) > 1:
+            print(f"  [error] {info_dir.name}: multiple images, cannot determine correct one:")
+            for f in image_files:
+                print(f"    {f.name}")
+            errors += 1
+            continue
+
+        # Exactly one image file, but name doesn't match metadata
+        actual_file = image_files[0]
+        actual_stem = actual_file.stem
+
+        print(f"\n  [{info_dir.name}]")
+        print(f"    metadata name: {name!r}")
+        print(f"    actual file:   {actual_file.name!r}")
+        print(f"    → updating metadata.json name to {actual_stem!r}")
+
+        if dry_run:
+            print("    [DRY RUN] no changes made")
+            fixed += 1
+            continue
+
+        meta['name'] = actual_stem
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(meta, f, indent=2, ensure_ascii=False)
+        fixed += 1
+
+    print(f"\nDone. {fixed} mismatch(es) {'would be ' if dry_run else ''}repaired, {ok} already correct, {errors} error(s).")
 
 
 # ─── FLICKR MODE ─────────────────────────────────────────────────────────────
@@ -288,12 +431,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument('mode', choices=['eagle', 'flickr'],
-                        help='"eagle" for Eagle .info folders, "flickr" for Flickr download folders')
+    parser.add_argument('mode', choices=['eagle', 'eagle-repair', 'flickr'],
+                        help='"eagle" renames to photo_id; "eagle-repair" fixes metadata/file mismatches; "flickr" renames to photo_id')
     parser.add_argument('folder', type=Path,
                         help='Root folder to process')
     parser.add_argument('--dry-run', action='store_true',
                         help='Report what would change without making any changes')
+    parser.add_argument('--show-bad-json', action='store_true',
+                        help='(eagle-repair) Show context around JSON parse errors')
+    parser.add_argument('--fix-bad-json', action='store_true',
+                        help='(eagle-repair) Rewrite corrupted metadata.json files using first valid JSON object')
 
     args = parser.parse_args()
 
@@ -306,6 +453,10 @@ def main():
 
     if args.mode == 'eagle':
         fix_eagle_folder(args.folder, dry_run=args.dry_run)
+    elif args.mode == 'eagle-repair':
+        repair_eagle_folder(args.folder, dry_run=args.dry_run,
+                            show_bad_json=args.show_bad_json,
+                            fix_bad_json=args.fix_bad_json)
     else:
         fix_flickr_folder(args.folder, dry_run=args.dry_run)
 

@@ -1,5 +1,7 @@
 # Handoff: Flickr/Eagle tooling refactor
-_June 2026_
+_Updated June 2026_
+
+---
 
 ## What problem started this
 
@@ -9,8 +11,6 @@ Dropbox was failing to sync Eagle library images because filenames contained spe
 2. `eagle_import.py` passes the raw title to Eagle as the item `name`
 3. Eagle uses that name as the image filename inside the `.info` folder
 4. Dropbox refuses to sync it
-
-The specific broken item that surfaced this: `/Dropbox/_visualreference/inspo-and-reference.library/images/MQIQ51GSL7YVD.info`
 
 ---
 
@@ -24,125 +24,134 @@ Instead of `{photo_id}_{title}.jpg`, files are now just `{photo_id}.jpg`. The ti
 
 ---
 
-## Files created (all in md - pkim and tools/)
+## Files in this folder
 
-### `fix_filenames.py`
-Fixes existing files on disk. Two modes:
+### `fix_filenames.py` — three modes
 
 ```bash
-# Rename Flickr downloads from photo_id_title.jpg → photo_id.jpg
-# (reads photo_id from inside the sidecar JSON, so works even on mangled filenames)
+# 1. Rename Eagle .info image files to Flickr photo_id
+#    (extracts ID from source_url in annotation; falls back to safe ASCII title)
+python fix_filenames.py eagle  /path/to/Eagle.library/images --dry-run
+python fix_filenames.py eagle  /path/to/Eagle.library/images
+
+# 2. Fix name/file mismatches + corrupted JSON in Eagle .info folders
+python fix_filenames.py eagle-repair /path/to/Eagle.library/images --dry-run
+python fix_filenames.py eagle-repair /path/to/Eagle.library/images --fix-bad-json
+
+# 3. Rename Flickr downloads to photo_id-only filenames
 python fix_filenames.py flickr /path/to/flickr_downloads --dry-run
 python fix_filenames.py flickr /path/to/flickr_downloads
-
-# Fix Eagle .info folders with special chars in image filenames + metadata.json
-python fix_filenames.py eagle /path/to/Eagle.library/images --dry-run
-python fix_filenames.py eagle /path/to/Eagle.library/images
 ```
 
-Always dry-run first.
+**Always dry-run first. Quit Eagle fully before running any eagle mode.**
 
 ### `flickr_download_safe_filename_patch.py`
-Instructions for patching `flickr_download.py` — remove `safe_filename()`, change filename lines to use `{photo_id}` directly. The uploaded `flickr_download.py` already has these changes applied.
+Instructions for patching `flickr_download.py` — the uploaded version already has these changes applied.
 
 ### `eagle_import_patch.py`
-One-line change to `eagle_import.py`: `name = meta.get("photo_id") or image_path.stem`
+Two changes for `eagle_import.py`:
+- `name = meta.get("photo_id") or image_path.stem`
+- Replace `build_annotation()` with the version in this file (fixes YAML line-wrapping, adds title field, removes HTML tags from URLs)
 
 ---
 
-## Current state of the scripts
+## Current state of the Eagle library repair
 
-### `flickr_download.py` (uploaded, changes applied ✓)
-- Downloads favourites + all galleries in one run
-- Flat output folder `./flickr_downloads/`
-- Deduplicates photos appearing in multiple galleries, tracks `occurrences`
-- Filenames: `{photo_id}.jpg` + `{photo_id}.json` ✓
-- Auth: hardcoded constants (older pattern — needs dotenv)
-- No EXIF fetching
+### What works
+- `fix_filenames.py eagle` mode: renames image files inside `.info` folders from long titles to photo_id. **Confirmed working** — 14,000+ items processed.
+- `fix_filenames.py eagle-repair --fix-bad-json`: fixes 12 corrupted metadata.json files (two JSON objects concatenated — Eagle race condition). **Confirmed working.**
+- `eagle-repair` detects and patches name/file mismatches.
 
-### `flickr_gallery_download.py` (uploaded, changes applied ✓, syntax error fixed)
-- Downloads specific galleries (by URL or ID) or all your galleries
-- Per-gallery subfolders: `./flickr_downloads/galleries/{slug}/`
-- Fetches EXIF/IPTC data ✓
-- Uses dotenv for credentials ✓
-- Filenames: `{photo_id}{ext}` + `{photo_id}.json` ✓
-- Has `slugify()` for folder names
+### What is NOT working — the core unresolved problem
 
-These two are **complementary, not duplicates**. Neither supersedes the other.
+**Eagle overwrites our metadata.json edits.**
+
+Eagle watches `.info` folders and pushes its in-memory state back to disk. Even when Eagle is fully quit, on reopen it reverts metadata.json `name` to its cached value. Evidence:
+- `$$hashKey` fields appear in palettes (Eagle's internal Angular.js tracking)
+- `lastModified` updates to a newer value than our repair wrote
+- The `name` field reverts to the old value
+
+Attempted fixes that didn't work:
+- Updating `lastModified` to current time (Eagle still wins)
+- Clearing `noThumbnail: true` flag
+- Running with Eagle fully closed
+
+### Why only 4 mismatches detected
+The `eagle-repair` script finds mismatches where `{name}.{ext}` file doesn't exist but another jpg does. Many broken items may have Eagle reverting metadata.json so the name matches the OLD filename again — making them look "correct" to the script, even though the image is still broken in Eagle's display.
+
+### Root cause hypothesis
+Eagle has an internal database (likely IndexedDB via Electron, or a library-level JSON) separate from individual `metadata.json` files. This internal DB holds the canonical item state and overwrites metadata.json on startup/sync. We need to update Eagle's internal DB, not just the files.
+
+### Possible next approaches
+
+**Option A: Use Eagle's API**
+Eagle runs a local API on port 41595. The `item/update` endpoint should update both the internal DB and metadata.json atomically. This requires Eagle to be OPEN.
+
+```python
+import requests
+requests.post("http://localhost:41595/api/item/update", json={
+    "id": "MQIQ51NC6EF4Q",
+    "name": "47092264742"
+})
+```
+
+This is probably the correct solution. Write an `eagle_repair_via_api.py` script that:
+1. Scans .info folders for mismatches (name ≠ actual image filename stem)
+2. For each mismatch, calls Eagle API to update the name
+3. Eagle then handles the internal DB + metadata.json update itself
+
+**Option B: Find and edit Eagle's internal database**
+Locate the library-level database file (probably inside `Eagle.library/` at the top level, not inside `images/`). Check what's there:
+```bash
+ls /Users/kimplowright/Dropbox/_visualreference/inspo-and-reference.library/
+```
+There may be a `library.json` or similar that Eagle reads on startup.
+
+**Option C: Re-import via eagle_import.py**
+For broken items, delete and re-import via Eagle API. Nuclear option but guaranteed to work.
 
 ---
 
-## Bigger refactor: planned but not started
-
-The conversation got to a clear architectural plan. Capture it here so it doesn't get lost.
-
-### Proposed structure
+## Downstream: bigger refactor (not started)
 
 ```
 md-flickr-tools/
   flickr/
     __init__.py
-    auth.py          # OAuth, token caching, dotenv
-    api.py           # all flickrapi calls (getInfo, getSizes, getExif, galleries, favourites)
+    auth.py          # OAuth, dotenv
+    api.py           # all flickrapi calls
     meta.py          # license map, date granularity, EXIF tag map, medium hints
-    tags.py          # split_tags(), parse machine/RDF tags, clean human tags
+    tags.py          # split_tags(), parse machine/RDF tags (BHL bookid: etc.)
   meta_formats/
     __init__.py
-    harvard.py       # citation_markdown string (Harvard-adjacent)
+    harvard.py       # citation_markdown string
     tasl.py          # TASL attribution line
-    annotation.py    # Eagle YAML annotation block
+    annotation.py    # Eagle YAML annotation block (use width=float('inf') in yaml.dump)
     frontmatter.py   # Obsidian YAML frontmatter
   schema/
-    fields.md        # canonical field reference — every field, provenance, crosswalk
-    mapping.py       # machine-readable field translation dicts
-  eagle_import.py    # thin wrapper, imports from flickr/ and meta_formats/
-  fix_filenames.py
-  flickr_favourites_download.py   # renamed from flickr_download.py
+    fields.md        # canonical crosswalk — read Obsidian notes first (see below)
+    mapping.py       # field translation dicts
+  eagle_import.py    # thin wrapper
+  fix_filenames.py   # this file
+  flickr_favourites_download.py
   flickr_gallery_download.py
-  # future:
-  # flickr_photostream_download.py
-  # flickr_albums_download.py
 ```
 
-### Key things to harmonise between the two download scripts
-- `flickr_download.py` → add dotenv auth, add EXIF fetching
-- `flickr_gallery_download.py` → add medium detection (MEDIUM_HINTS), add proper Harvard citations + TASL
-- Harmonise license name format (one uses short "CC BY 2.0", other uses long form)
-- Both should import shared code from `flickr/` rather than duplicating
-
-### Tag cleansing (flickr/tags.py)
-`split_tags()` currently lives in `eagle_import.py` but belongs in `flickr/tags.py` — it's about Flickr's data, not Eagle's. Machine tags (`bookid:`, `dc:identifier=`, `taxonomy:binomial=`) should be split out before metadata reaches any formatter.
-
-The BHL (Biodiversity Heritage Library) machine tags are particularly rich:
-`bookid:encyclopdiedhi10chens`, `bookauthor:Chenu_Jean_Charles_1808_1879`, `bookleafnumber:151` etc.
-These are essentially a bibliographic record — the `bookid` is an Internet Archive identifier.
-**Future work**: parse these into structured book metadata, cross-reference via IA API + Wikidata.
-Relevant to dt-knowledge-base work.
-
-### Schema crosswalk (schema/fields.md)
-There is existing thinking on this in Obsidian — read these before designing the crosswalk:
+**Read these Obsidian notes before designing schema/fields.md:**
 - `_development-notes/md-pkim-library/Images and Collection Data - standards schema and formats.md`
 - `md-pkim-library/README-extract-book-metadata.md`
 - `_development-notes/md-pkim-library/museum-image-citation-structured-data-audit-handoff.md`
 - `dt-knowledge-base/knowledge-base/artists/lod-lookup.yaml`
 
-The internal sidecar schema should align to Dublin Core as the hub — DC has crosswalks to/from schema.org, Wikidata, MARC, Europeana, VRA Core (images), MET API etc. Design the `schema/fields.md` crosswalk table after reading the above notes.
+Internal schema should align to Dublin Core as hub (crosswalks to schema.org, Wikidata, MARC, VRA Core, MET API, Europeana etc.)
+
+**BHL machine tags** (`bookid:`, `bookauthor:`, `bookleafnumber:` etc.) are rich bibliographic data parseable via Internet Archive API + Wikidata. Relevant to dt-knowledge-base. Capture for later — `flickr/tags.py` is where this belongs.
 
 ---
 
-## Immediate next steps (in order)
-
-1. **Run `fix_filenames.py`** against the Eagle library and existing Flickr downloads to fix what's on disk now
-2. **Apply the one-line patch** to `eagle_import.py` (`name = meta.get("photo_id")`)
-3. **Read the Obsidian schema notes** before touching `schema/fields.md`
-4. Then: scaffold the shared library structure above
-
----
-
-## Files in this folder to commit to the repo
-- `fix_filenames.py`
-- `flickr_download.py` (updated)
-- `flickr_gallery_download.py` (updated)
-- `HANDOFF-flickr-eagle-refactor.md` (this file)
-- `flickr_download_safe_filename_patch.py` (can delete once patches are applied)
-- `eagle_import_patch.py` (can delete once patches are applied)
+## Scripts committed to repo
+- `fix_filenames.py` ✓
+- `flickr_download.py` (updated, photo_id filenames) ✓
+- `flickr_gallery_download.py` (updated, photo_id filenames) ✓
+- `eagle_import_patch.py` (apply manually to eagle_import.py)
+- `flickr_download_safe_filename_patch.py` (apply manually, then delete)

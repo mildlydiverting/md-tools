@@ -154,12 +154,23 @@ def split_tags(tags):
 def build_annotation(meta):
     """
     Build the annotation block for Eagle.
-    Format: YAML front matter wrapped in --- dividers, followed by the plain-text citation.
-    Field names match the output of flickr_download.py / flickr_gallery_download.py.
+
+    Format:
+        YAML front matter (--- delimited) containing structured citation fields,
+        followed by the plain-text citation as a readable block.
+
+    Notes:
+        - width=float('inf') prevents yaml from wrapping long strings at 80 chars.
+          Without this, URLs and citations get broken across lines with YAML
+          continuation indentation, which makes them unreadable in Eagle.
+        - All URL fields are plain text — Eagle does not render HTML.
+        - Title is included in full, untruncated.
     """
     fields = {}
 
     for dest, src in [
+        ("photo_id",      "photo_id"),
+        ("title",         "title"),           # full title, untruncated
         ("creator",       "creator"),
         ("creator_url",   "creator_profile_url"),
         ("date_created",  "date_created"),
@@ -178,7 +189,14 @@ def build_annotation(meta):
     if not fields:
         return ""
 
-    yaml_block = yaml.dump(fields, allow_unicode=True, default_flow_style=False, sort_keys=False).strip()
+    yaml_block = yaml.dump(
+        fields,
+        allow_unicode=True,
+        default_flow_style=False,
+        sort_keys=False,
+        width=float('inf'),      # ← prevents line-wrapping inside strings
+    ).strip()
+
     front_matter = f"---\n{yaml_block}\n---"
 
     citation = fields.get("citation", "")
