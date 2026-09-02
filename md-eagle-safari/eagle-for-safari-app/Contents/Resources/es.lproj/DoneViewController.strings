@@ -1,0 +1,15 @@
+
+/* Class = "NSButton"; ibShadowedToolTip = "關閉視窗"; ObjectID = "31b-2q-P3e"; */
+"31b-2q-P3e.ibShadowedToolTip" = "Close";
+
+/* Class = "NSTextFieldCell"; title = "Eagle 扩展已顺利安装，你可以开始尽情收藏网页上的图片、灵感了！"; ObjectID = "6sh-IE-uyk"; */
+"6sh-IE-uyk.title" = "Eagle extension has been installed successfully, enjoy it!";
+
+/* Class = "NSButtonCell"; title = "关闭窗口"; ObjectID = "MQl-W0-mW4"; */
+"MQl-W0-mW4.title" = "Close";
+
+/* Class = "NSTextFieldCell"; title = "太棒了，安装完成！"; ObjectID = "UyJ-O7-VWE"; */
+"UyJ-O7-VWE.title" = "Installed!";
+
+/* Class = "NSButtonCell"; title = "測試回上一頁"; ObjectID = "Yip-tD-bd4"; */
+"Yip-tD-bd4.title" = "back (test)";

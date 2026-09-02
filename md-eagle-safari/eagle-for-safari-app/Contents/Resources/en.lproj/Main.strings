@@ -1,0 +1,45 @@
+
+/* Class = "NSMenuItem"; title = "Eagle for Safari"; ObjectID = "1Xt-HY-uBw"; */
+"1Xt-HY-uBw.title" = "Eagle for Safari";
+
+/* Class = "NSMenuItem"; title = "Quit Eagle for Safari"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "Quit Eagle for Safari";
+
+/* Class = "NSMenuItem"; title = "About Eagle for Safari"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "About Eagle for Safari";
+
+/* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
+"AYu-sK-qS6.title" = "Main Menu";
+
+/* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
+"F2S-fz-NVQ.title" = "Help";
+
+/* Class = "NSMenuItem"; title = "Eagle for Safari Help"; ObjectID = "FKE-Sm-Kum"; */
+"FKE-Sm-Kum.title" = "Eagle for Safari Help";
+
+/* Class = "NSWindow"; title = "Eagle Safari Extension"; ObjectID = "IQv-IB-iLA"; */
+"IQv-IB-iLA.title" = "Eagle for Safari";
+
+/* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
+"Kd2-mp-pUS.title" = "Show All";
+
+/* Class = "NSMenuItem"; title = "Hide Eagle for Safari"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "Hide Eagle for Safari";
+
+/* Class = "NSTextFieldCell"; title = "App Name's extension is currently off. You can turn it on in Safari Extensions preferences."; ObjectID = "S7v-7o-3vW"; */
+"S7v-7o-3vW.title" = "App Name's extension is currently off. You can turn it on in Safari Extensions preferences.";
+
+/* Class = "NSButtonCell"; alternateTitle = "Install"; ObjectID = "Srx-0j-A4D"; */
+"Srx-0j-A4D.alternateTitle" = "Install";
+
+/* Class = "NSButtonCell"; title = "Quit and Open Safari Extensions Preferences…"; ObjectID = "Srx-0j-A4D"; */
+"Srx-0j-A4D.title" = "Quit and Open Safari Extensions Preferences…";
+
+/* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
+"Vdr-fp-XzO.title" = "Hide Others";
+
+/* Class = "NSMenu"; title = "Eagle for Safari"; ObjectID = "uQy-DD-JDr"; */
+"uQy-DD-JDr.title" = "Eagle for Safari";
+
+/* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
+"wpr-3q-Mcd.title" = "Help";

@@ -1,0 +1,1 @@
+(async()=>{var e=document.createElement("iframe");e.id="open-eagle-iframe",e.src="eagle://open",e.name="frame",e.style.height="0px",e.style.width="0px",e.style.opacity="0",document.body.appendChild(e)})();

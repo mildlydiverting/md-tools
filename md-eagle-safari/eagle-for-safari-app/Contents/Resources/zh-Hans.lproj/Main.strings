@@ -1,0 +1,45 @@
+
+/* Class = "NSMenuItem"; title = "Eagle for Safari"; ObjectID = "1Xt-HY-uBw"; */
+"1Xt-HY-uBw.title" = "Eagle - 图片灵感收藏工具";
+
+/* Class = "NSMenuItem"; title = "Quit Eagle for Safari"; ObjectID = "4sb-4s-VLi"; */
+"4sb-4s-VLi.title" = "离开 Eagle - 图片灵感收藏工具";
+
+/* Class = "NSMenuItem"; title = "About Eagle for Safari"; ObjectID = "5kV-Vb-QxS"; */
+"5kV-Vb-QxS.title" = "About Eagle - 图片灵感收藏工具";
+
+/* Class = "NSMenu"; title = "Main Menu"; ObjectID = "AYu-sK-qS6"; */
+"AYu-sK-qS6.title" = "主选单";
+
+/* Class = "NSMenu"; title = "Help"; ObjectID = "F2S-fz-NVQ"; */
+"F2S-fz-NVQ.title" = "说明";
+
+/* Class = "NSMenuItem"; title = "Eagle for Safari Help"; ObjectID = "FKE-Sm-Kum"; */
+"FKE-Sm-Kum.title" = "Eagle - 图片灵感收藏工具 说明";
+
+/* Class = "NSWindow"; title = "Eagle Safari Extension"; ObjectID = "IQv-IB-iLA"; */
+"IQv-IB-iLA.title" = "Eagle for Safari";
+
+/* Class = "NSMenuItem"; title = "Show All"; ObjectID = "Kd2-mp-pUS"; */
+"Kd2-mp-pUS.title" = "显示全部";
+
+/* Class = "NSMenuItem"; title = "Hide Eagle for Safari"; ObjectID = "Olw-nP-bQN"; */
+"Olw-nP-bQN.title" = "隐藏 Eagle - 图片灵感收藏工具";
+
+/* Class = "NSTextFieldCell"; title = "App Name's extension is currently off. You can turn it on in Safari Extensions preferences."; ObjectID = "S7v-7o-3vW"; */
+"S7v-7o-3vW.title" = "Eagle已被停用，你可以在Safari的延伸功能中开启它";
+
+/* Class = "NSButtonCell"; alternateTitle = "Install"; ObjectID = "Srx-0j-A4D"; */
+"Srx-0j-A4D.alternateTitle" = "Install";
+
+/* Class = "NSButtonCell"; title = "Quit and Open Safari Extensions Preferences…"; ObjectID = "Srx-0j-A4D"; */
+"Srx-0j-A4D.title" = "开启Safari偏好设定";
+
+/* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "Vdr-fp-XzO"; */
+"Vdr-fp-XzO.title" = "隐藏其他";
+
+/* Class = "NSMenu"; title = "Eagle for Safari"; ObjectID = "uQy-DD-JDr"; */
+"uQy-DD-JDr.title" = "Eagle - 图片灵感收藏工具";
+
+/* Class = "NSMenuItem"; title = "Help"; ObjectID = "wpr-3q-Mcd"; */
+"wpr-3q-Mcd.title" = "说明";

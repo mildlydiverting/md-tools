@@ -1,0 +1,1 @@
+class YoutubePlugin extends SitePlugin{getMeta(e){if(!location.href.includes("youtube.com"))return t;let t={};var u=jQuery("div.ytd-compact-video-renderer").has(e);return 0<u.length&&(u=u.find("#video-title").text())&&0<u.length&&(t.customTitle=u.trim()),t}}(()=>{var e=new YoutubePlugin;eagle.plugin.register("youtube.com",e)})();
