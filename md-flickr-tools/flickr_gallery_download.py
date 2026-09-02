@@ -120,10 +120,9 @@ def slugify(text, max_len=60):
 
 
 def safe_filename(photo_id, title, ext):
-    """Construct a safe filename: ID_Title.ext"""
-    safe_title = re.sub(r'[^\w\s-]', '', title).strip()
-    safe_title = re.sub(r'[\s]+', ' ', safe_title)[:80]
-    return f"{photo_id}_{safe_title}{ext}"
+    """Construct a filename: photo_ID.ext - Patched"""
+
+    return f"{photo_id}{ext}"
 
 
 def now_utc():
@@ -478,9 +477,8 @@ def process_gallery(flickr, gallery_info, reset=False):
             failed += 1
             continue
 
-        filename_base = safe_filename(photo_id, title, '')
-        img_path  = os.path.join(out_dir, filename_base + ext)
-        json_path = os.path.join(out_dir, filename_base + '.json')
+        img_path  = os.path.join(out_dir, f"{photo_id}{ext}")
+        json_path = os.path.join(out_dir, f"{photo_id}.json")
 
         # Build metadata
         metadata = build_metadata(photo, photo_info, gallery_info, src_url, size_label, exif=exif)
@@ -498,7 +496,7 @@ def process_gallery(flickr, gallery_info, reset=False):
 
         manifest[photo_id] = {
             'title':      title,
-            'filename':   filename_base + ext,
+            'filename':   f"{photo_id}{ext}",
             'downloaded': metadata['date_accessed'],
         }
         save_manifest(manifest_path, manifest)

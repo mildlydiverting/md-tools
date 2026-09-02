@@ -1,0 +1,97 @@
+Parsed 126 entries across 6 groups
+
+## Name collisions (same name, different hex)
+  don-juan: #5e534b [Understory-reference-muted], #5d4b5c [Understory-reference-muted]
+  gray-nurse: #e7e8e8 [Understory-reference-pastel], #eae9e7 [Understory-reference-bright]
+  gurkha: #98997f [Understory-reference-muted], #98947a [Understory-reference-bright]
+  highland: #719759 [Understory - illustrations], #709658 [Understory - illustrations]
+  iron: #d7d6d7 [Understory-reference-pastel], #d5d7df [Understory - illustrations]
+  kabul: #5a4a41 [Untitled Palette], #62493a [Understory - illustrations]
+  nevada: #666a72 [Understory-reference-muted], #67717c [Understory - illustrations]
+  pampas: #f2f1ec [Understory-reference-pastel], #f3f2ed [Understory-reference-bright]
+  spice: #67462d [Untitled Palette], #67462d [understory-canvas], #66462b [understory-canvas]
+
+## Exact hex repeats (8)
+  #4a4e57 x2: abbey [Understory-reference-muted], abbey [Untitled Palette]
+  #67462d x2: spice [Untitled Palette], spice [understory-canvas]
+  #81836a x2: bandicoot [Understory-reference-muted], bandicoot [Untitled Palette]
+  #cc9485 x2: my-pink [Understory-reference-pastel], my-pink [Untitled Palette]
+  #d8bebc x2: blossom [Understory-reference-pastel], blossom [Untitled Palette]
+  #dbc8a4 x2: akaroa [Understory-reference-pastel], akaroa [Untitled Palette]
+  #e9e2d4 x2: pearl-bush [Untitled Palette], pearl-bush [understory-canvas]
+  #ecdcba x2: raffia [Understory-reference-bright], raffia [Untitled Palette]
+
+## Near-duplicates, Oklab dE < 0.02 (27)
+  dE 0.0030  #f2f1ec pampas             / #f3f2ed pampas
+  dE 0.0033  #719759 highland           / #709658 highland
+  dE 0.0034  #67462d spice              / #66462b spice
+  dE 0.0045  #d5d5d5 quill-gray         / #d7d6d7 iron
+  dE 0.0053  #e7e8e8 gray-nurse         / #eae9e7 gray-nurse
+  dE 0.0064  #f2f1ec pampas             / #f0efe9 cararra
+  dE 0.0094  #f2f1ec pampas             / #f3f1e5 ecru-white
+  dE 0.0094  #f3f2ed pampas             / #f0efe9 cararra
+  dE 0.0095  #f0efe9 cararra            / #f3f1e5 ecru-white
+  dE 0.0102  #f3f2ed pampas             / #f3f1e5 ecru-white
+  dE 0.0105  #d7d6d7 iron               / #d5d7df iron
+  dE 0.0119  #fafafa alabaster          / #fefefe romance
+  dE 0.0126  #d7d6d7 iron               / #dbdadc alto
+  dE 0.0126  #b8bbc3 french-gray        / #b7becc heather
+  dE 0.0131  #d5d5d5 quill-gray         / #d5d7df iron
+  dE 0.0132  #dbdadc alto               / #d5d7df iron
+  dE 0.0135  #98997f gurkha             / #98947a gurkha
+  dE 0.0151  #e9e2d4 pearl-bush         / #e0dfd3 westar
+  dE 0.0161  #e3d7b8 grain-brown        / #e0dac5 tana
+  dE 0.0164  #5a4a41 kabul              / #62493a kabul
+  dE 0.0170  #d5d5d5 quill-gray         / #dbdadc alto
+  dE 0.0178  #eae9e7 gray-nurse         / #f0efe9 cararra
+  dE 0.0182  #67462d spice              / #62493a kabul
+  dE 0.0188  #ecdcba raffia             / #e3d7b8 grain-brown
+  dE 0.0190  #e0dfd3 westar             / #e0dac5 tana
+  dE 0.0195  #949490 mountain-mist      / #8e8e8e stack
+  dE 0.0199  #66462b spice              / #62493a kabul
+
+Sorting 118 swatches (deduped)
+
+## Ordered by lightness (OKLCh L)
+  darkest to lightest (118): #0e091b #0a083e #1e130b #1c122c #231934 #3f2517 #3c2f2a #303e09 #56331d #4c3c3c #493e50 #4c431b #1c4b6f #16448f #405346 #5a4a41 #66462b #4a4e57 #67462d #62493a #5d4b5c #1a4ab4 #5e534b #6b4e57 #286641 #4e6106 #685e57 #016f70 #765c56 #517201 #237a06 #6f6261 #994d4c #c40024 #6a6b56 #666a72 #5e733b #a0542c #0474ac #67717c #7c6d68 #607b6f #627885 #578500 #986c3c #247cc2 #b05f6b #91755c #e50859 #c95600 #ad6d59 #81836a #db414a #6d8d9a #709658 #719759 #b87c17 #7d8d98 #dc5f2c #8e8e8e #ae8652 #7a94a5 #cc7747 #98947a #949490 #09a9a9 #98997f #ac9085 #bd8890 #eb7747 #ce916a #cc9485 #b6a08d #a8a8a7 #8eadc2 #c5a680 #adae96 #d0a460 #daa39f #b8b5a2 #c4b68c #f1a771 #b8bbc3 #52d5ba #d3b993 #b7becc #c4bfa8 #d8bebc #c9c7c7 #dbc8a4 #ecca03 #acd6e9 #fec607 #e7cfa8 #e3d39c #d5d5d5 #d7d6d7 #c4dbe6 #d5d7df #e3d7b8 #e0dac5 #dbdadc #ecdcba #e0dfd3 #d1e5f1 #e9e2d4 #e7e8e8 #f4ecab #eae9e7 #feedc3 #f0efe9 #e7f1f8 #f3f1e5 #f2f1ec #f3f2ed #f9fdde #fafafa #fefefe
+
+## Ordered by hue (OKLCh H, neutrals first)
+  neutrals, then hue angle (118): #4a4e57 #5e534b #685e57 #6f6261 #666a72 #8e8e8e #949490 #a8a8a7 #b8bbc3 #c9c7c7 #d5d5d5 #d7d6d7 #d5d7df #dbdadc #e0dfd3 #e7e8e8 #eae9e7 #f0efe9 #e7f1f8 #f3f1e5 #f2f1ec #f3f2ed #fafafa #fefefe #bd8890 #e50859 #b05f6b #4c3c3c #db414a #994d4c #d8bebc #daa39f #c40024 #765c56 #cc9485 #ad6d59 #7c6d68 #dc5f2c #3c2f2a #eb7747 #ac9085 #c95600 #a0542c #3f2517 #cc7747 #5a4a41 #56331d #62493a #ce916a #f1a771 #1e130b #67462d #66462b #b6a08d #91755c #986c3c #c5a680 #ae8652 #b87c17 #d0a460 #d3b993 #e7cfa8 #dbc8a4 #e9e2d4 #ecdcba #fec607 #feedc3 #e3d7b8 #c4b68c #e0dac5 #e3d39c #ecca03 #4c431b #c4bfa8 #b8b5a2 #98947a #f4ecab #adae96 #98997f #6a6b56 #81836a #f9fdde #4e6106 #303e09 #5e733b #517201 #578500 #719759 #709658 #237a06 #286641 #405346 #607b6f #52d5ba #09a9a9 #016f70 #6d8d9a #acd6e9 #c4dbe6 #d1e5f1 #627885 #7a94a5 #8eadc2 #7d8d98 #0474ac #1c4b6f #247cc2 #67717c #16448f #1a4ab4 #b7becc #0a083e #0e091b #231934 #1c122c #493e50 #5d4b5c #6b4e57
+
+## Grouped by hue family
+  neutral (24): #4a4e57 #5e534b #685e57 #6f6261 #666a72 #8e8e8e #949490 #a8a8a7 #b8bbc3 #c9c7c7 #d5d5d5 #d7d6d7 #d5d7df #dbdadc #e0dfd3 #e7e8e8 #eae9e7 #f0efe9 #e7f1f8 #f3f1e5 #f2f1ec #f3f2ed #fafafa #fefefe
+  red (12): #4c3c3c #765c56 #994d4c #c40024 #7c6d68 #b05f6b #ad6d59 #db414a #bd8890 #cc9485 #daa39f #d8bebc
+  orange (31): #1e130b #3f2517 #3c2f2a #56331d #5a4a41 #66462b #67462d #62493a #a0542c #986c3c #91755c #c95600 #b87c17 #dc5f2c #ae8652 #cc7747 #ac9085 #eb7747 #ce916a #b6a08d #c5a680 #d0a460 #c4b68c #f1a771 #d3b993 #dbc8a4 #e7cfa8 #e3d7b8 #ecdcba #e9e2d4 #feedc3
+  yellow (14): #4c431b #6a6b56 #81836a #98947a #98997f #adae96 #b8b5a2 #c4bfa8 #ecca03 #fec607 #e3d39c #e0dac5 #f4ecab #f9fdde
+  green (11): #303e09 #405346 #286641 #4e6106 #517201 #237a06 #5e733b #607b6f #578500 #709658 #719759
+  cyan (3): #016f70 #09a9a9 #52d5ba
+  blue (17): #0e091b #0a083e #1c4b6f #16448f #1a4ab4 #0474ac #67717c #627885 #247cc2 #6d8d9a #7d8d98 #7a94a5 #8eadc2 #b7becc #acd6e9 #c4dbe6 #d1e5f1
+  purple (4): #1c122c #231934 #493e50 #5d4b5c
+  pink (2): #6b4e57 #e50859
+
+## Grouped by character
+  neutral (24): #c9c7c7 #6f6261 #685e57 #5e534b #eae9e7 #fefefe #d5d5d5 #fafafa #8e8e8e #f3f2ed #f2f1ec #f0efe9 #f3f1e5 #e0dfd3 #a8a8a7 #949490 #e7e8e8 #e7f1f8 #666a72 #4a4e57 #b8bbc3 #d5d7df #dbdadc #d7d6d7
+  pale (19): #d8bebc #f1a771 #d3b993 #e7cfa8 #dbc8a4 #e9e2d4 #ecdcba #feedc3 #e3d7b8 #e0dac5 #e3d39c #c4bfa8 #f4ecab #f9fdde #52d5ba #acd6e9 #c4dbe6 #d1e5f1 #b7becc
+  muted (41): #bd8890 #4c3c3c #daa39f #765c56 #cc9485 #ad6d59 #7c6d68 #ac9085 #5a4a41 #56331d #62493a #67462d #66462b #b6a08d #91755c #986c3c #c5a680 #ae8652 #c4b68c #4c431b #b8b5a2 #98947a #adae96 #98997f #6a6b56 #81836a #5e733b #286641 #405346 #607b6f #016f70 #6d8d9a #627885 #7a94a5 #8eadc2 #7d8d98 #1c4b6f #67717c #493e50 #5d4b5c #6b4e57
+  vivid (11): #e50859 #db414a #c40024 #dc5f2c #eb7747 #c95600 #fec607 #ecca03 #578500 #237a06 #1a4ab4
+  deep (15): #b05f6b #994d4c #a0542c #cc7747 #ce916a #b87c17 #d0a460 #4e6106 #517201 #719759 #709658 #09a9a9 #0474ac #247cc2 #16448f
+  dark (8): #3c2f2a #3f2517 #1e130b #303e09 #0a083e #0e091b #231934 #1c122c
+
+## Grouped by k-means in Oklab (k=7)
+  cluster 1 (5): #1e130b #0e091b #231934 #1c122c #0a083e
+  cluster 2 (18): #67462d #4c431b #5a4a41 #4a4e57 #3c2f2a #4c3c3c #5e534b #405346 #493e50 #5d4b5c #6b4e57 #3f2517 #303e09 #66462b #62493a #286641 #56331d #4e6106
+  cluster 3 (6): #247cc2 #1a4ab4 #1c4b6f #0474ac #16448f #016f70
+  cluster 4 (20): #81836a #685e57 #7c6d68 #91755c #6a6b56 #607b6f #7d8d98 #666a72 #6f6261 #986c3c #6d8d9a #627885 #517201 #719759 #709658 #5e733b #237a06 #67717c #765c56 #578500
+  cluster 5 (13): #a0542c #994d4c #cc7747 #dc5f2c #ae8652 #eb7747 #ad6d59 #db414a #b05f6b #c40024 #e50859 #b87c17 #c95600
+  cluster 6 (25): #cc9485 #ac9085 #b8b5a2 #949490 #98997f #b8bbc3 #bd8890 #b6a08d #c5a680 #d3b993 #c4b68c #c4bfa8 #a8a8a7 #adae96 #8eadc2 #b7becc #daa39f #d0a460 #98947a #ce916a #8e8e8e #7a94a5 #09a9a9 #f1a771 #52d5ba
+  cluster 7 (31): #e9e2d4 #dbc8a4 #ecdcba #d8bebc #d5d5d5 #fafafa #c9c7c7 #e3d7b8 #f2f1ec #e7e8e8 #c4dbe6 #d7d6d7 #fefefe #e7cfa8 #eae9e7 #f3f2ed #f4ecab #acd6e9 #d1e5f1 #e7f1f8 #dbdadc #e0dfd3 #e0dac5 #f0efe9 #fec607 #f3f1e5 #feedc3 #ecca03 #e3d39c #d5d7df #f9fdde
+
+## As supplied, by source group
+  Untitled Palette (13): #3c2f2a #4c431b #5a4a41 #4a4e57 #67462d #685e57 #a0542c #81836a #cc9485 #d8bebc #dbc8a4 #ecdcba #e9e2d4
+  Understory-reference-muted (18): #4c3c3c #493e50 #405346 #5d4b5c #5e534b #6b4e57 #6a6b56 #666a72 #7c6d68 #607b6f #91755c #7d8d98 #949490 #98997f #ac9085 #b8b5a2 #b8bbc3 #d5d5d5
+  Understory-reference-pastel (17): #bd8890 #b6a08d #a8a8a7 #8eadc2 #c5a680 #adae96 #c4b68c #d3b993 #b7becc #c4bfa8 #c9c7c7 #d7d6d7 #c4dbe6 #e3d7b8 #e7e8e8 #f2f1ec #fafafa
+  Understory-reference-bright (19): #1a4ab4 #6f6261 #994d4c #986c3c #247cc2 #6d8d9a #cc7747 #98947a #d0a460 #daa39f #acd6e9 #e7cfa8 #dbdadc #d1e5f1 #f4ecab #eae9e7 #e7f1f8 #f3f2ed #fefefe
+  understory-canvas (10): #3f2517 #303e09 #66462b #627885 #dc5f2c #8e8e8e #ce916a #e0dac5 #e0dfd3 #f0efe9
+  Understory - illustrations (41): #0e091b #0a083e #1e130b #1c122c #231934 #56331d #1c4b6f #16448f #62493a #286641 #4e6106 #016f70 #765c56 #517201 #237a06 #c40024 #5e733b #0474ac #67717c #578500 #b05f6b #e50859 #c95600 #ad6d59 #db414a #709658 #719759 #b87c17 #ae8652 #7a94a5 #09a9a9 #eb7747 #f1a771 #52d5ba #ecca03 #fec607 #e3d39c #d5d7df #feedc3 #f3f1e5 #f9fdde
+
+Wrote /mnt/user-data/outputs/reference-colours.png
