@@ -39,3 +39,4 @@ config.local.py
 .idea/
 *.swp
 *.swo
+/md-ember-to-eagle/.claude/worktrees
