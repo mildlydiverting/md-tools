@@ -19,6 +19,7 @@ stopped working on macOS 26). Standard library only, no affiliate links.
 | `Titler (Python) - Extract Links.workflow` | Service: copies a Markdown list of the selection's links to the clipboard and shows a "Titler finished" notification. Your selection is left untouched. |
 | `titler_command.py` | Sublime Text plugin (runs `titler.py` directly, no Services). |
 | `Default (OSX).sublime-keymap` | Suggested Sublime key bindings. |
+| `Titler.sublime-commands` | Adds Titler to Sublime's command palette. |
 
 Needs macOS with `/usr/bin/python3` (3.9 is fine) and `/usr/bin/curl`.
 
@@ -69,9 +70,11 @@ Sublime Text's Services menu lists Titler but doesn't pass it the selection, so
 the Service fails there. The plugin avoids Services altogether.
 
 1. **Preferences ▸ Browse Packages…** and open the `User` folder.
-2. Copy in `titler_command.py` and `titler.py` (they must sit side by side).
+2. Copy in `titler_command.py`, `titler.py` and `Titler.sublime-commands` (the Python files must sit side by side).
 3. Add the bindings from `Default (OSX).sublime-keymap` to **Preferences ▸ Key Bindings** (user side):
    `⌘⌥T` replaces the selection with titled links; `⌘⌥⇧T` leaves the text alone and copies a Markdown list of the links to the clipboard (like the Extract Links Service). Change the keys as you like.
+
+Or open the command palette (`⌘⇧P`) and type "Titler": you'll get *Add Titles to Links*, *Copy Links List to Clipboard* and a debug variant.
 
 It replaces each selection, or the whole file if nothing is selected. It
 fetches in the background (status bar shows progress). If you edit the text

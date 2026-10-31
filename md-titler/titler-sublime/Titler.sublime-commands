@@ -1,0 +1,8 @@
+[
+    { "caption": "Titler: Add Titles to Links",
+      "command": "titler" },
+    { "caption": "Titler: Copy Links List to Clipboard",
+      "command": "titler", "args": { "args": ["links"], "copy": true } },
+    { "caption": "Titler: Add Titles to Links (debug)",
+      "command": "titler", "args": { "args": ["debug"] } }
+]
