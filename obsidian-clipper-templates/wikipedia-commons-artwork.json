@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.2.0",
+  "name": "Wikimedia Commons artwork",
+  "behavior": "create",
+  "noteNameFormat": "{{selector:#fileinfotpl_art_artist + td a, #fileinfotpl_art_painter + td a, #fileinfotpl_aut + td a|nth:1|replace:\"/\\s*\\(.*\\).*/gs\":\"\"|safe_name}} - {{selector:#fileinfotpl_art_date + td, #fileinfotpl_date + td|replace:\"/[^0-9]*([0-9]{4}).*/gs\":\"$1\"}} - {{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"|safe_name}}",
+  "path": "Clippings/Artworks",
+  "noteContentFormat": "![{{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"}}]({{selector:#file a|nth:1|replace:\"^//\":\"https://\"|replace:\"/\\?utm_[^&]*(&|$)/g\":\"\"}})\n\n**{{selector:#fileinfotpl_art_artist + td a, #fileinfotpl_art_painter + td a, #fileinfotpl_aut + td a|nth:1}}** · *{{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"}}* · {{selector:#fileinfotpl_art_date + td, #fileinfotpl_date + td|replace:\"/date ?QS:.*/gis\":\"\"}}\n\n{{selector:#fileinfotpl_art_medium + td|replace:\"/medium ?QS:.*/gis\":\"\"}} · {{selector:#fileinfotpl_art_dimensions + td|replace:\"/\\s*dimensions ?QS:.*/gis\":\"\"}}  \n{{selector:#fileinfotpl_art_institution + td a|nth:1}}\n\n## Citation (TASL)\n\n[{{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"}}]({{url}}) - [{{selector:#fileinfotpl_art_artist + td a, #fileinfotpl_art_painter + td a, #fileinfotpl_aut + td a|nth:1}}]({{selector:#fileinfotpl_art_artist + td a?href, #fileinfotpl_art_painter + td a?href, #fileinfotpl_aut + td a?href|nth:1}}) - from [{{selector:#fileinfotpl_art_institution + td a|nth:1}}]({{selector:#fileinfotpl_art_institution + td a?href|nth:1}}) under [{{selector:.licensetpl_short:first-of-type}}]({{selector:.licensetpl_link:first-of-type}})\n\n## Citation (Harvard smush)\n\n{{selector:#fileinfotpl_art_artist + td a, #fileinfotpl_art_painter + td a, #fileinfotpl_aut + td a|nth:1}} ({{selector:#fileinfotpl_art_date + td, #fileinfotpl_date + td|replace:\"/date ?QS:.*/gis\":\"\"}}) *{{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"}}*. [{{selector:#fileinfotpl_art_medium + td|replace:\"/medium ?QS:.*/gis\":\"\"}}][{{selector:#fileinfotpl_art_dimensions + td|replace:\"/\\s*dimensions ?QS:.*/gis\":\"\"}}]. {{selector:#fileinfotpl_art_institution + td a|nth:1}}. Available at [{{url}}]({{url}}) (Accessed {{date|date:\"YYYY-MM-DD\"}}). Licensed under [{{selector:.licensetpl_short:first-of-type}}]({{selector:.licensetpl_link:first-of-type}}).\n\n---\n\n[File page]({{url}}) · [Full image]({{selector:#file a?href|nth:1|replace:\"^//\":\"https://\"|replace:\"/\\?utm_[^&]*(&|$)/g\":\"\"}}) · [Collection page]({{selector:#fileinfotpl_art_source + td a?href, #fileinfotpl_credit + td a?href|nth:1}})\n",
+  "properties": [
+    { "name": "title", "value": "{{selector:#fileinfotpl_art_title + td [lang]|nth:1|replace:\"/title ?QS:.*/gis\":\"\"}}", "type": "text" },
+    { "name": "artist", "value": "{{selector:#fileinfotpl_art_artist + td a, #fileinfotpl_art_painter + td a, #fileinfotpl_aut + td a|nth:1}}", "type": "text" },
+    { "name": "artist_url", "value": "{{selector:#fileinfotpl_art_artist + td a?href, #fileinfotpl_art_painter + td a?href, #fileinfotpl_aut + td a?href|nth:1}}", "type": "text" },
+    { "name": "date", "value": "{{selector:#fileinfotpl_art_date + td, #fileinfotpl_date + td|replace:\"/date ?QS:.*/gis\":\"\"}}", "type": "text" },
+    { "name": "year", "value": "{{selector:#fileinfotpl_art_date + td, #fileinfotpl_date + td|replace:\"/[^0-9]*([0-9]{4}).*/gs\":\"$1\"}}", "type": "number" },
+    { "name": "medium", "value": "{{selector:#fileinfotpl_art_medium + td|replace:\"/medium ?QS:.*/gis\":\"\"}}", "type": "text" },
+    { "name": "dimensions", "value": "{{selector:#fileinfotpl_art_dimensions + td|replace:\"/\\s*dimensions ?QS:.*/gis\":\"\"}}", "type": "text" },
+    { "name": "institution", "value": "{{selector:#fileinfotpl_art_institution + td a|nth:1}}", "type": "text" },
+    { "name": "institution_url", "value": "{{selector:#fileinfotpl_art_institution + td a?href|nth:1}}", "type": "text" },
+    { "name": "department", "value": "{{selector:#fileinfotpl_art_dept + td}}", "type": "text" },
+    { "name": "accession_number", "value": "{{selector:#fileinfotpl_art_accession + td}}", "type": "text" },
+    { "name": "source", "value": "{{selector:#fileinfotpl_art_source + td, #fileinfotpl_credit + td}}", "type": "text" },
+    { "name": "collection_url", "value": "{{selector:#fileinfotpl_art_source + td a?href, #fileinfotpl_credit + td a?href|nth:1}}", "type": "text" },
+    { "name": "license", "value": "{{selector:.licensetpl_short:first-of-type}}", "type": "text" },
+    { "name": "license_url", "value": "{{selector:.licensetpl_link:first-of-type}}", "type": "text" },
+    { "name": "permalink", "value": "{{url}}", "type": "text" },
+    { "name": "image_url", "value": "{{selector:#file a?href|nth:1|replace:\"^//\":\"https://\"|replace:\"/\\?utm_[^&]*(&|$)/g\":\"\"}}", "type": "text" },
+    { "name": "website", "value": "Wikimedia Commons", "type": "text" },
+    { "name": "date_accessed", "value": "{{date|date:\"YYYY-MM-DD\"}}", "type": "date" },
+    { "name": "tags", "value": "clippings, artwork, art-reference", "type": "multitext" }
+  ],
+  "triggers": [
+    "https://commons.wikimedia.org/wiki/File:"
+  ]
+}

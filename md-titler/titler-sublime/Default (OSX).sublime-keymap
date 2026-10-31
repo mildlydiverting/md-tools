@@ -1,0 +1,5 @@
+[
+    // Add these to Preferences > Key Bindings (User); pick your own keys.
+    { "keys": ["super+alt+t"],       "command": "titler" },
+    { "keys": ["super+alt+shift+t"], "command": "titler", "args": { "args": ["links"], "copy": true } }
+]

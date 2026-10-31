@@ -1,0 +1,92 @@
+# Bookshelves for Ian 2026-05-02
+
+# Art - Artists
+art - artists
+
+# Art - Practice
+art - practice/artists books + bookbinding
+art - practice/colour theory
+art - practice/courses and video tutorials
+art - practice/creativity + artistic research
+art - practice/curation + museums + archives
+art - practice/drawing
+art - practice/drawing - life figure portrait
+art - practice/painting
+art - practice/performance + theatre
+art - practice/photography
+art - practice/printmaking
+art - practice/professional practice
+art - practice/techniques + materials
+art - practice/textiles + fibre
+art - practice/walking
+art - practice/zines + comics + sequential + diy
+
+# Art - Theory + History
+art - theory + history/art history
+art - theory + history/critical theory + philosophy + aesthetics
+art - theory + history/culture + cultural studies
+art - theory + history/digital art + post-internet
+art - theory + history/queer theory + culture
+art - theory + history/writing + narrative + comics
+
+# Art - Writing + Creative Writing
+art - writing creative writing
+
+# Business + Work
+business + work/data + analytics
+business + work/project management
+business + work/strategy + management
+
+# Design + Typography
+design + typography
+
+# Digital + Media
+digital + media/code + creative tech
+digital + media/film + tv + animation
+digital + media/games + interactive + xr
+digital + media/internet culture + new media
+digital + media/ux + product design
+
+# Education + Pedagogy
+education + pedagogy/arts + alt-ed
+education + pedagogy/teaching + pedagogy
+education + pedagogy/training + workshops + facilitation
+
+# Fiction + Literature
+fiction + literature
+fiction + literature/smut
+
+# Food + Cookery
+food + cookery
+
+# History
+history/computing + cybernetics + systems
+history/local history
+history/nuclear + cold war
+history/prehistory + paleolithic + bronze age
+
+# Nature + Ecology
+nature + ecology
+
+# Politics + Society
+politics + society/counterculture
+politics + society/occult + esoteric
+politics + society/politics + disinformation + propaganda
+
+# Psychology + Embodiment
+psychology + embodiment/embodiment + phenomenology
+psychology + embodiment/neuroscience
+psychology + embodiment/psychoanalysis
+psychology + embodiment/psychology
+psychology + embodiment/self-help + personal development
+
+# Utility folders
+_collections/art + aesthetics
+_collections/art school
+_collections/documents of contemporary art
+_collections/mit press
+_collections/oxford university press
+_collections/very short introductions
+_collections/world of art
+_inbox
+_projects/hopeful monsters
