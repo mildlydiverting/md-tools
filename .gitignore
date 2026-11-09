@@ -40,3 +40,4 @@ config.local.py
 *.swp
 *.swo
 /md-ember-to-eagle/.claude/worktrees
+/md-scripts/laurakriefman.com-alt-text

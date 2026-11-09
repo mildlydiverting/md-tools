@@ -1,0 +1,102 @@
+var hc = readFile("~/Desktop/HexColors.txt")
+//text file format color name tab color value no #
+//found at https://community.adobe.com/t5/indesign-discussions/generate-adobe-color-files-from-hexadecimal/m-p/13981941
+/* 
+Color Name	e0cffc
+Color Name	c29ffa
+Color Name	a370f7
+Color Name	8540f5
+Color Name	6610f2
+Color Name	520dc2
+Color Name	3d0a91
+Color Name	290661
+Color Name	140330 
+*/
+
+//an array of hex values (no # prefix)
+var hexList = hc.split("\n")
+
+//a new document with sRGB as its assigned RGB profile
+var d = app.documents.add();
+app.activeDocument.rgbProfile="sRGB IEC61966-2.1"
+
+//remove default swatches
+var us = d.unusedSwatches
+for (var i = 0; i < us.length; i++){
+    us[i].remove()
+};
+
+//make a new color group named HEX
+var cg = makeColorGroup(d, "sRGB HEX")
+
+//create RGB swatches with HEX names from the  hexList array
+var ns, ha, cn;
+for (var i = 0; i < hexList.length; i++){
+    ha = hexList[i].split("\t")
+    cn = ha[0] + " #" + ha[1]
+    //$.writeln(cn)
+    ns = makeSwatch(d, cn, cg)
+    ns.properties = {model:ColorModel.PROCESS, space:ColorSpace.RGB, colorValue:hexToRgb(ha[1])}
+};   
+
+
+/**
+* Gets the RGB values as an array from the provided hex value 
+* @ param the hex value 
+* @ return array of RGB values 
+*/
+function hexToRgb(hx) {
+    var r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hx);
+    var a = [];
+    var i = 3;
+    while (i--) a.unshift(parseInt(r[i+1], 16));
+    return a
+}
+  
+
+/**
+* Makes a new named Swatch 
+* @ param d document 
+* @ param color name 
+* @ param group name 
+* @ return the new swatch 
+*/
+
+function makeSwatch(d, n, cg){
+    if (d.colors.itemByName(n).isValid) {
+        return d.colors.itemByName(n);
+    } else {
+        return d.colors.add({name:n, parentColorGroup:cg});
+    }
+}
+
+
+/**
+* Makes a new color group
+* @ param d document 
+* @ param n group name 
+* @ return the new group 
+* 
+*/
+function makeColorGroup(d, n){
+    if (d.colorGroups.itemByName(n).isValid) {
+        return d.colorGroups.itemByName(n);
+    } else {
+        return d.colorGroups.add({name:n});
+    }
+}
+
+
+/**
+* Read a text file 
+* @ param p the path to the text file 
+* @ return the file‘s text 
+*/
+
+function readFile(p) {
+	var f = new File(p);
+	f.open("r");  
+	var x = f.read(); 
+	f.close();
+	return x; //returns the text in the file sampletext.txt
+}

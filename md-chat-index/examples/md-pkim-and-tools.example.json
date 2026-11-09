@@ -1,0 +1,760 @@
+{
+ "project": "md-pkim-and-tools",
+ "slug": "md-pkim-and-tools",
+ "generated": "2026-11-04T12:45:00+00:00",
+ "intro": "*Updated 4 November 2026 from all 72 project chats.*",
+ "chats": [
+  {
+   "id": "96dbf9ff-e21b-4b1e-b90a-dedd14ea44f6",
+   "last_updated": "2026-10-31T00:12:22+00:00",
+   "title": "Titler service errors on macOS",
+   "summary": "Diagnosing why the Titler macOS Service (URLs to titled Markdown links) failed with 'problem with the input' errors. Rebuilt it in Python as Automator Services plus a Sublime Text plugin, with a README."
+  },
+  {
+   "id": "3b7b1206-4677-4835-878a-904822190af8",
+   "last_updated": "2026-10-28T11:56:31+00:00",
+   "title": "Keynote automation and Eagle integration",
+   "summary": "Exploring how to automate Keynote decks (the 'shadow stories' deck) from macOS. Wrote a phased handoff plan: Keynote to Obsidian extraction first, then Eagle to Keynote slide creation."
+  },
+  {
+   "id": "036738f7-b9e7-43db-83e7-f711122c5c70",
+   "last_updated": "2026-10-27T13:54:09+00:00",
+   "title": "Broken images in markdown guide",
+   "summary": "Finding out why 55 images vanished from a dt-knowledge-base note. The files in _attachments were saved as .jpg while the links said .png; fixed with a find-and-replace."
+  },
+  {
+   "id": "f998237f-cb0e-4b29-96c4-fc95594bcd53",
+   "last_updated": "2026-10-26T10:34:28+00:00",
+   "title": "Wikipedia Commons citation tool",
+   "summary": "Building wiki-cite, a Safari bookmarklet that pulls citation data from Wikimedia Commons and Wikipedia File pages. It outputs YAML, TASL and Harvard-style Markdown, an Eagle list and JSON."
+  },
+  {
+   "id": "6c8df119-bb9c-4344-a5bb-f9113135040c",
+   "last_updated": "2026-10-20T20:10:28+00:00",
+   "title": "Safari extension for image and metadata extraction",
+   "summary": "Scoping a single Safari extension that combines dezoomify, citation generation, structured-metadata sniffing and batch image download. Saved items would route to Are.na, local Markdown or Pinboard."
+  },
+  {
+   "id": "d4e057cd-f717-401e-a1e6-2f16a5bdf66a",
+   "last_updated": "2026-10-04T00:42:07+00:00",
+   "title": "File format identification and encoding",
+   "summary": "Identifying an extensionless, UUID-named file using header and Exif inspection. It turned out to be a JPEG book cover; advised renaming to .jpg."
+  },
+  {
+   "id": "f06e3bdb-ec97-4842-9b11-66d7fe37bf6a",
+   "last_updated": "2026-09-30T12:40:48+00:00",
+   "title": "Markdown frontmatter property automation",
+   "summary": "Writing two Python scripts for a vault: one adds a missing frontmatter key to files (dry-run, preserves formatting), the other lists distinct values of a property."
+  },
+  {
+   "id": "ef9abb62-a59b-40e1-9c2e-fa773a01ef22",
+   "last_updated": "2026-09-23T13:07:33+00:00",
+   "title": "Ebook file organization and metadata extraction",
+   "summary": "A status check on the md-pkim-library ebook project (about 8,500 files, 13+3 folder schema, extract_book_metadata.py), reconstructed from earlier chats and project memory."
+  },
+  {
+   "id": "8aa64bff-cdd0-4753-8d7b-569a8303039a",
+   "last_updated": "2026-09-23T13:04:47+00:00",
+   "title": "Duplicate file detection and organization script",
+   "summary": "Building a SHA256-based duplicate finder that keeps the oldest copy, moves the rest to a /duplicates subfolder and offers a dry-run report."
+  },
+  {
+   "id": "0474bcec-8cd6-4c31-82a8-11db888ec9b2",
+   "last_updated": "2026-09-22T18:59:29+00:00",
+   "title": "Organizing markdown files by Pinterest metadata",
+   "summary": "Writing move_pinterest_notes.py to move Markdown notes with pinterest-link or pinterest-board frontmatter into another folder. Dry-run by default, with collision checks."
+  },
+  {
+   "id": "582d8b7f-89eb-4297-9d01-90f09f53c65a",
+   "last_updated": "2026-09-09T14:13:21+00:00",
+   "title": "Deriving schema from simonw small museums YAML file",
+   "summary": "Fetching simonw's museums YAML from GitHub and deriving a TypeScript schema from it, with notes on field patterns."
+  },
+  {
+   "id": "a5b9f4fe-c7e6-4815-86c0-2681b06209fc",
+   "last_updated": "2026-09-09T14:12:39+00:00",
+   "title": "Dezoomify compatibility with UFDC resources",
+   "summary": "Investigating whether dezoomify can fetch images from University of Florida Digital Collections. Found a tiled IIPImage DeepZoom path behind an OpenSeadragon viewer."
+  },
+  {
+   "id": "33971930-c804-4970-897f-027eaa3971e6",
+   "last_updated": "2026-09-04T19:07:44+00:00",
+   "title": "Obsidian vault properties inventory",
+   "summary": "Auditing frontmatter properties and data types across four Obsidian vaults via MCP, then writing DataviewJS snippets to list vault properties."
+  },
+  {
+   "id": "6fca87de-048e-46c6-97f5-8c2b1511ee49",
+   "last_updated": "2026-09-03T12:40:46+00:00",
+   "title": "Extract outstanding todos from July-August conversations",
+   "summary": "Collecting outstanding todos from July and August 2026 chats into a TaskPaper-style Markdown file grouped by project."
+  },
+  {
+   "id": "7d3694ab-1f66-4840-8df0-a67c900d6659",
+   "last_updated": "2026-08-26T15:16:49+00:00",
+   "title": "Obsidian vault access",
+   "summary": "Checking MCP access to four vaults, then writing pinterest_move.py to detect Pinterest-related frontmatter and move notes and their images into a subfolder."
+  },
+  {
+   "id": "fd523a6b-1534-4095-8e84-8bd92c05711b",
+   "last_updated": "2026-08-20T20:13:55+00:00",
+   "title": "Organizing an art-reference vault",
+   "summary": "Starting a metadata harmonisation pass on the art-reference vault. The session was taken up by MCP timeouts, and the scoping questions went unanswered."
+  },
+  {
+   "id": "ce8a1b23-d55e-4a93-9965-4a8f3924894f",
+   "last_updated": "2026-08-17T18:14:41+00:00",
+   "title": "Organizing hex codes by color relationships",
+   "summary": "Building palette_sort.py to order hex colours (OKLCh hue, lightness, nearest-neighbour) and group them (hue families, bands, k-means, near-duplicates)."
+  },
+  {
+   "id": "1e345143-3536-4deb-a32e-7d2b7f77802c",
+   "last_updated": "2026-08-11T13:09:29+00:00",
+   "title": "Understanding JSON-LD structure and concepts",
+   "summary": "Having JSON-LD explained (@context, @id, @type and so on) and relating it to Kim's canonical sidecar schema and Obsidian frontmatter."
+  },
+  {
+   "id": "5d79139d-e416-43d4-b473-50fb537535de",
+   "last_updated": "2026-08-03T16:21:30+00:00",
+   "title": "Organizing Obsidian vault",
+   "summary": "A frontmatter and tagging pass on the general vault import folder. Found about 500 Pinterest exports in two formats and wrote fix_pinterest_frontmatter.py to normalise them."
+  },
+  {
+   "id": "c56f25ad-553a-415a-b06f-3d28c22c2827",
+   "last_updated": "2026-07-22T15:16:54+00:00",
+   "title": "Creating folders from text file with shell script",
+   "summary": "Learning three shell approaches (file, stdin, heredoc) to create thirteen folders from a list."
+  },
+  {
+   "id": "54368819-447e-46a8-8a8a-3b58b88d94e2",
+   "last_updated": "2026-07-11T21:43:14+00:00",
+   "title": "Obsidian MCP server access",
+   "summary": "Debugging claude_desktop_config.json to connect local Obsidian REST API vaults over MCP (http vs https, ports, Node version, npx via nvm). Produced a debugging cheatsheet."
+  },
+  {
+   "id": "d9f737ff-c73f-4ef1-9504-0e2c348708c6",
+   "last_updated": "2026-07-11T17:10:27+00:00",
+   "title": "Porting socialsnag to Safari",
+   "summary": "Assessing whether the SocialSnag Chrome extension can be ported to Safari. The main blocker is Safari's lack of a chrome.downloads API."
+  },
+  {
+   "id": "ebf75648-f2c7-4935-84e5-a83e2d400a41",
+   "last_updated": "2026-07-11T00:47:48+00:00",
+   "title": "Python not found in bash script",
+   "summary": "Fixing an Automator zsh script that could not find Python for convert-folder-to-md.py. A broken venv (circular symlinks after a Homebrew upgrade) was rebuilt."
+  },
+  {
+   "id": "c6ef591f-3509-407a-a00a-fb0a18af31a6",
+   "last_updated": "2026-07-09T20:36:27+00:00",
+   "title": "md tools roadmap",
+   "summary": "Synthesising about 18 tooling strands across projects, notes and repos into a dependency-ordered route map (tooling-route-map-v1.md)."
+  },
+  {
+   "id": "0766746b-adda-4f6c-8031-cf398e59d474",
+   "last_updated": "2026-06-17T23:57:04+00:00",
+   "title": "Porting Flickr images and JSON to Eagle app",
+   "summary": "Continuing md-flickr-tools by building eagle_import.py, which imports Flickr image and JSON sidecar pairs into Eagle through its local web API."
+  },
+  {
+   "id": "c7bc11bd-5235-40e6-9ac4-fb7f430bc72d",
+   "last_updated": "2026-06-14T16:24:39+00:00",
+   "title": "Building a drawing knowledge base with wikilinks",
+   "summary": "Designing and implementing a schema revision and maintenance system (linting, wikilinks, context) for the drawing knowledge-base vault, using a Karpathy-style wiki approach."
+  },
+  {
+   "id": "0fdf0345-d1b6-4f1d-9407-59da1475da56",
+   "last_updated": "2026-05-25T16:09:40+00:00",
+   "title": "Adding ASE and CLR export formats to arena-palette",
+   "summary": "Adding ASE, GPL and Procreate .palette swatch exports to arena-palette. Apple CLR was judged infeasible in the browser and deferred."
+  },
+  {
+   "id": "4f8e40d8-a61c-4591-92ed-47c3bdb0d821",
+   "last_updated": "2026-05-25T00:00:43+00:00",
+   "title": "Automating Flickr gallery image downloads with metadata",
+   "summary": "Building flickr_gallery_download.py within md-flickr-tools, in a modular 'small pieces loosely joined' pipeline around shared JSON sidecars."
+  },
+  {
+   "id": "b17a7efe-7a9e-4700-a0ad-8e2ecfc0da6b",
+   "last_updated": "2026-05-24T15:47:32+00:00",
+   "title": "Restructuring  dezoomify test cases into a single table",
+   "summary": "Restructuring dezoomify-test-cases.md into one flat table of sites, tile technologies, results and fix strategies."
+  },
+  {
+   "id": "edc4ce1b-40db-4920-b78c-9bb4f72d08f1",
+   "last_updated": "2026-05-21T23:22:09+00:00",
+   "title": "Clustering tags and fixing Obsidian frontmatter",
+   "summary": "Repairing broken YAML frontmatter across two Obsidian vaults and planning tag consolidation, with dry-runs and careful use of the Obsidian CLI."
+  },
+  {
+   "id": "02a9292c-bff3-4983-93de-429cd6408460",
+   "last_updated": "2026-05-20T23:23:29+00:00",
+   "title": "Obsidian overview mcp and tag clustering",
+   "summary": "Mapping a Dropbox-hosted Obsidian vault over MCP and clustering its tags (textile-arts vocabulary), despite read timeouts."
+  },
+  {
+   "id": "c106a451-9f6a-4f28-8a5f-38a6948a04d7",
+   "last_updated": "2026-05-20T12:21:44+00:00",
+   "title": "Chat index and project summary generation",
+   "summary": "The earlier run of this same task: 39 chats audited to produce a chat index CSV and a project summary for the md-tools project."
+  },
+  {
+   "id": "4a393b8a-b183-4ab7-aea4-d30f1f195994",
+   "last_updated": "2026-05-20T00:46:19+00:00",
+   "title": "Alfred workflows with are.na API",
+   "summary": "Brainstorming Alfred workflows on the Are.na API: quick capture, browse and retrieve, and channel management."
+  },
+  {
+   "id": "d99878c6-854c-4c81-a05c-5f3898f8e7bb",
+   "last_updated": "2026-05-19T20:13:13+00:00",
+   "title": "Alfred dezoomify notification issue",
+   "summary": "Diagnosing missing notifications from the dezoomify Alfred workflow; traced to macOS notification permissions, not the script."
+  },
+  {
+   "id": "57973b9f-9eb6-48ff-b40d-5e63b99aca90",
+   "last_updated": "2026-05-19T16:15:41+00:00",
+   "title": "Rewriting dezoomify workflow README",
+   "summary": "Rewriting the md-alfred-dezoomify README to the Alfred Gallery style guide, alongside a fuller version."
+  },
+  {
+   "id": "63fc9efd-9ae4-4957-9915-d3d7dc9e8d23",
+   "last_updated": "2026-05-19T15:39:36+00:00",
+   "title": "dezoomify YAML  custom formats for Alfred integration and github issue bug reports",
+   "summary": "Creating a dezoomify test-cases document, diagnosing the Art Institute of Chicago failure (IIIF v2 manifest parsing) and drafting upstream bug reports."
+  },
+  {
+   "id": "c29060dc-4e43-4952-b974-702bc1bbf1ae",
+   "last_updated": "2026-05-17T23:55:31+00:00",
+   "title": "Alfred workflow for saving web content to are.na",
+   "summary": "Assessing an Alfred workflow to clip images and selected text from Safari or Chrome to Are.na with citation metadata. The image-picker UI is the main bottleneck."
+  },
+  {
+   "id": "4151cd55-785b-4bfb-ad06-0c1a900f368c",
+   "last_updated": "2026-05-17T20:13:22+00:00",
+   "title": "Dezoomify integration for National Gallery artwork",
+   "summary": "Debugging and extending the dezoomify Alfred workflow for museum sites where dezoomify-rs cannot auto-detect tiles from the page URL."
+  },
+  {
+   "id": "184eff79-123a-4614-b7a3-c7a179edc3e0",
+   "last_updated": "2026-05-08T22:11:27+00:00",
+   "title": "Batch converting documents with markitdown",
+   "summary": "Building batch PDF, EPUB and DOCX to Markdown converters with markitdown, including scanned-PDF detection, OCR fallback, CLI arguments and Automator use."
+  },
+  {
+   "id": "92066241-24bc-4a5c-a61f-778d5894af79",
+   "last_updated": "2026-05-06T23:11:05+00:00",
+   "title": "Eagle.app library access",
+   "summary": "Testing a new Eagle.app skill. Concluded that sandbox networking blocks localhost, so it does not work in that environment."
+  },
+  {
+   "id": "f8bd6c2e-7e1d-4e83-81ff-a115e666654f",
+   "last_updated": "2026-05-06T23:06:47+00:00",
+   "title": "Migrating artist data from Artsy API",
+   "summary": "Investigating the retiring Artsy API as a source of artist identifiers. Settled on Wikidata as the hub for Getty ULAN, Art UK and Tate links."
+  },
+  {
+   "id": "35d5b8f7-2ec0-43b8-be58-a7a1aa5f331a",
+   "last_updated": "2026-05-05T23:03:01+00:00",
+   "title": "Color extraction methods analysis",
+   "summary": "Reverse-engineering the palette extraction in OKpalette and Google's Art Palette from supplied source, with a side-by-side comparison."
+  },
+  {
+   "id": "e5f31796-5f7b-4233-8224-9764ab259a9b",
+   "last_updated": "2026-05-05T23:01:34+00:00",
+   "title": "Color extraction page JavaScript review",
+   "summary": "Analysing Adobe Color, Supereasy Tools and Coolors extraction code to inform arena-palette. Adobe's energy-minimisation approach looked most promising."
+  },
+  {
+   "id": "1783163d-bbce-4924-88fd-0535a67733ce",
+   "last_updated": "2026-05-04T19:39:50+00:00",
+   "title": "Python venv setup and path issues",
+   "summary": "Fixing pyenv and venv setup, and walking through wider developer-environment concepts (zsh, .env, gitignore, SSH) with a running setup reference doc."
+  },
+  {
+   "id": "0aafa5e4-2e49-459e-ae9d-827039d3f731",
+   "last_updated": "2026-05-04T13:16:20+00:00",
+   "title": "Project pickup point suggestions",
+   "summary": "Reviewing recent project chats to choose a restart point. Chose the dezoomify Alfred workflow's scraper fallback."
+  },
+  {
+   "id": "e88fd7ee-d2bf-4e31-9cad-d5d704d3e965",
+   "last_updated": "2026-05-02T17:44:39+00:00",
+   "title": "Automated tiled image downloader with dezoomify",
+   "summary": "The full build of the dezoomify Alfred workflow (get_browser_info.js, dezoomify_save.py v1.1, test script), ending with a scraper-fallback handoff for Rijksmuseum and NGV."
+  },
+  {
+   "id": "fca685a3-e56a-42a3-ae7c-52e819df59ce",
+   "last_updated": "2026-05-01T19:43:55+00:00",
+   "title": "Scrape Pinterest Data and Migrate to Are.na",
+   "summary": "Scripts to scrape a Pinterest account to Markdown and upload it to Are.na, with pyenv guidance, request throttling and login handling."
+  },
+  {
+   "id": "c975be17-75d2-445b-830c-857cb5d3ea9d",
+   "last_updated": "2026-04-30T18:10:30+00:00",
+   "title": "Arena palettes color space handling",
+   "summary": "Auditing arena-palette's colour pipeline and planning a full OKLCh approach, weighing culori, color.js, chroma.js and a hand-rolled conversion."
+  },
+  {
+   "id": "1cef95b1-8d0d-4127-bee1-643334a95fbd",
+   "last_updated": "2026-04-29T22:17:02+00:00",
+   "title": "Deploying arena palettes to public server",
+   "summary": "Reviewing arena-palette's security for public static hosting (localStorage tokens) and finding average colour in Are.na v3 blurhash data."
+  },
+  {
+   "id": "5bae0951-9866-4698-a911-a64a56ec950b",
+   "last_updated": "2026-04-26T00:15:06+00:00",
+   "title": "Documenting project workflows for efficiency",
+   "summary": "Clarifying memory versus project instructions, drafting a handoff template and compiling a TaskPaper list of todos from all project chats."
+  },
+  {
+   "id": "1a9be837-4359-49de-af72-f3638790d4d3",
+   "last_updated": "2026-04-25T21:06:39+00:00",
+   "title": "Flickr favorites checker script",
+   "summary": "Building flickr_download.py with OAuth, deduplication, a citation-rich metadata schema, and a git-history scrub of committed API keys."
+  },
+  {
+   "id": "ee94e89e-a65c-4659-9c0d-b54bcf6ea5f3",
+   "last_updated": "2026-04-25T12:40:55+00:00",
+   "title": "Structured data for image attribution",
+   "summary": "Auditing eleven institution web pages for JSON-LD, microdata and similar markup to auto-generate image citations. Concluded per-site parsers are needed."
+  },
+  {
+   "id": "817eedf6-9480-4e2e-b6ff-7c0a0deb51c4",
+   "last_updated": "2026-04-19T11:44:42+00:00",
+   "title": "Decoding a garbled song title",
+   "summary": "Decoding CP1251-as-Latin-1 mojibake in a Russian song title, then choosing MusicBrainz Picard for a roughly 30,000-file music library."
+  },
+  {
+   "id": "b9aec8fb-8d8a-4920-be24-a3fa1eceba61",
+   "last_updated": "2026-04-19T11:28:31+00:00",
+   "title": "Random are.na board display tool",
+   "summary": "The full build of arena-picks (v1.0 to v1.8b): v3 API, light and dark mode, per-card locking and save-to-zip."
+  },
+  {
+   "id": "9687f37c-4d10-4834-aee1-1b09a2a7de5c",
+   "last_updated": "2026-04-19T11:27:38+00:00",
+   "title": "Extracting and formatting content from Are.na and Eagle.app",
+   "summary": "A placeholder scoping chat for turning Are.na and Eagle images into contact sheets or PDFs (Paged.js, Bindery.js or Python). Ended with four open questions."
+  },
+  {
+   "id": "4c916dbc-74f1-4f95-ae35-0ff5117317ab",
+   "last_updated": "2026-04-19T11:04:16+00:00",
+   "title": "PyMuPDF import error in book metadata script",
+   "summary": "Debugging extract_book_metadata.py (pyenv shims, illegal XML characters in openpyxl), then handing the spreadsheet over to Claude for Excel."
+  },
+  {
+   "id": "879715b4-5b2b-417c-89c3-e53e28214e1f",
+   "last_updated": "2026-04-18T23:28:46+00:00",
+   "title": "Converting book list to CSV with categories",
+   "summary": "Categorising booklist.txt against the 13-topic schema with confidence ratings, and writing extract_book_metadata.py to tackle opaque filenames and duplicates."
+  },
+  {
+   "id": "0a6ba4a4-5995-4824-891e-f67ee7393235",
+   "last_updated": "2026-04-16T01:24:18+00:00",
+   "title": "Integrating new exporters into are.na-palette",
+   "summary": "Wiring the Bars and Dots PNG renderers into arena-palette and fixing the blurred canvas background with a multi-pass downscale."
+  },
+  {
+   "id": "ae9df322-8219-422d-81fe-e7f771d4e279",
+   "last_updated": "2026-04-16T00:13:40+00:00",
+   "title": "Arena palette design review and png render test",
+   "summary": "Specifying and prototyping the 'Dots 1' and 'Bars 2' PNG export layouts as standalone canvas harnesses."
+  },
+  {
+   "id": "ebbfa6a7-d22a-486b-b417-1f90430592f4",
+   "last_updated": "2026-04-15T18:59:57+00:00",
+   "title": "are.na palette tool development",
+   "summary": "Adding shared headers and semantic colours to arena-palette's text exports, and agreeing two PNG export layouts."
+  },
+  {
+   "id": "8e170388-ac57-4ef4-8ec8-aabce137af7a",
+   "last_updated": "2026-04-14T17:23:24+00:00",
+   "title": "Integrating color naming API for arena palettes",
+   "summary": "Integrating the color.pizza naming API, richer block metadata, and an accessibility and layout overhaul (v1.20 to v1.23)."
+  },
+  {
+   "id": "a4f4a26c-face-47a5-85b9-a29c2d3b9b82",
+   "last_updated": "2026-04-14T16:27:41+00:00",
+   "title": "SVG artist palette icon with asterisks",
+   "summary": "Drawing an SVG icon of an artist's palette with Are.na asterisks as paint daubs."
+  },
+  {
+   "id": "f8bf2c73-d584-4331-8992-78b9912ef220",
+   "last_updated": "2026-04-13T09:09:13+00:00",
+   "title": "Structuring an arena palette generator repository",
+   "summary": "Setting up the are.na-toolkit monorepo and global gitignore, then iterating arena-palette's UI from v1.7 to v1.19."
+  },
+  {
+   "id": "5be3359f-ae09-4bf3-a2a8-09f40ae4fa86",
+   "last_updated": "2026-04-12T17:31:40+00:00",
+   "title": "Project chat status and next steps",
+   "summary": "Reviewing ten active workstreams across the project and producing TaskPaper next steps for each."
+  },
+  {
+   "id": "af46cccf-1bee-4185-8074-c00732348359",
+   "last_updated": "2026-04-12T17:05:37+00:00",
+   "title": "Are.na color palette generator",
+   "summary": "Building arena-palette v1.0 to v1.7: v3 API, Color Thief extraction, export formats, a handoff note and a TODO list."
+  },
+  {
+   "id": "c2ca9d52-85ed-4c43-a9d0-a2496676d814",
+   "last_updated": "2026-03-18T23:09:46+00:00",
+   "title": "book classification folders and File system access capabilities",
+   "summary": "Designing the 13+3 folder schema and five-prefix shared tag vocabulary for the ebook library, with a make-folders.zsh script."
+  },
+  {
+   "id": "ed18e477-3242-49cb-b9f9-cceeb7c782d7",
+   "last_updated": "2026-03-09T19:29:04+00:00",
+   "title": "Uploaded files and project memory",
+   "summary": "Clarifying how uploads, project knowledge and memory differ, and how Cowork could help rename about 6,000 ebooks."
+  },
+  {
+   "id": "50fe953b-6976-4429-b48e-ddd8c6b27f6e",
+   "last_updated": "2025-10-21T19:04:47+00:00",
+   "title": "Local AI model training",
+   "summary": "Exploring a local RAG setup (Ollama, LlamaIndex, CLIP) for querying about 4,000 ebooks and a large image collection."
+  },
+  {
+   "id": "5c958f95-3c84-457b-8995-8afd9571d795",
+   "last_updated": "2025-09-30T13:48:22+00:00",
+   "title": "Pinboard Tag Analysis Script",
+   "summary": "Extending the Pinboard tag script to v2.2 with frequency sorting, plus a NetworkX and Plotly network graph (Plotly import issue outstanding)."
+  },
+  {
+   "id": "1f959f53-265c-4e76-b323-4662c0664e32",
+   "last_updated": "2025-09-30T13:48:06+00:00",
+   "title": "Pinboard Tag Hierarchy Analysis",
+   "summary": "Building a script that shows Pinboard tag hierarchies and combination counts from local JSON backups, after API errors."
+  },
+  {
+   "id": "c3c23449-9fe5-4995-85be-73e3c13fa5be",
+   "last_updated": "2025-09-30T13:47:57+00:00",
+   "title": "Automate Image Uploads to Are.na",
+   "summary": "Writing a watchdog script that monitors folders for new images with metadata.json and prepares them for upload to Are.na."
+  },
+  {
+   "id": "1260257e-bf24-4831-9f37-88fed5c6e23b",
+   "last_updated": "2025-09-30T13:47:48+00:00",
+   "title": "Convert JSON to Markdown with Selective Extraction",
+   "summary": "Converting folders of Pinterest JSON exports to Markdown with YAML frontmatter, with media download and throttling."
+  }
+ ],
+ "sections": [
+  {
+   "heading": "arena-palette — Are.na colour palette tool",
+   "body": "A local single-file HTML tool (no build step, no server) for fetching images from Are.na channels, extracting colour palettes with tints/shades and semantic colours, and exporting in multiple formats. Currently at v1.23+.\n\n### Sub-areas\n- **Core extraction pipeline** — Color Thief v3 (MMCQ) with optional OKLCh clustering; semantic palette via `getSwatchesSync`; proportional colour bar with 1 % floor\n- **Text exports** — hex / RGB+HSL / CSS custom properties / Simple Color Palette JSON, all including shared image+source header\n- **PNG export renderers** — Bars 2 (reference card) and Dots 1 (dot grid overlay), built as standalone canvas harnesses then integrated; multi-pass downscale blur for background\n- **OKLCh pipeline** — in progress; agreed to keep OKLCh through all internal stages and convert only at output; library choice between culori CDN and hand-rolled conversion\n- **Colour naming** — color.pizza API integration (`requestedHex` map-key fix; `block.description` object bug fix)\n- **UI and accessibility** — three-column layout; mid-grey neutral ground; WCAG AA audit; collapsible channels; CUBE CSS / Atomic Design\n- **Public deployment** — localStorage token storage confirmed safe; CORS canvas taint from `images.are.na` CDN needs live testing\n- **Build system** — Python concat script (`build.py`); no npm; version comments in file headers\n- **Colour algorithm research** — reverse-engineered OKpalette / Adobe Color / Supereasy / Coolors for comparison; Adobe's mood-weighted energy-minimisation approach flagged for potential adoption\n- **Swatch file exports** — ASE, GPL and Procreate `.palette` exports added (May 2026); Apple CLR judged infeasible in-browser and deferred\n- **Colour ordering and grouping** — `palette_sort.py`: OKLCh hue / lightness / nearest-neighbour orderings; hue-family, band, k-means and near-duplicate groupings; hex and swatch output",
+   "chat_ids": [
+    "ce8a1b23-d55e-4a93-9965-4a8f3924894f",
+    "0fdf0345-d1b6-4f1d-9407-59da1475da56",
+    "35d5b8f7-2ec0-43b8-be58-a7a1aa5f331a",
+    "e5f31796-5f7b-4233-8224-9764ab259a9b",
+    "c975be17-75d2-445b-830c-857cb5d3ea9d",
+    "1cef95b1-8d0d-4127-bee1-643334a95fbd",
+    "0a6ba4a4-5995-4824-891e-f67ee7393235",
+    "ae9df322-8219-422d-81fe-e7f771d4e279",
+    "ebbfa6a7-d22a-486b-b417-1f90430592f4",
+    "8e170388-ac57-4ef4-8ec8-aabce137af7a",
+    "a4f4a26c-face-47a5-85b9-a29c2d3b9b82",
+    "f8bf2c73-d584-4331-8992-78b9912ef220",
+    "af46cccf-1bee-4185-8074-c00732348359"
+   ],
+   "todos": [
+    "Confirm where the OKLCh pipeline got to (planned April) and finish it end to end, deciding between culori and hand-rolled conversion",
+    "Test the new ASE, GPL and Procreate exports in Adobe, GIMP and Procreate, and decide how to produce Apple CLR (native helper or script)",
+    "Deploy to GitHub Pages and test PNG export CORS behaviour from a real public origin"
+   ]
+  },
+  {
+   "heading": "[[dezoomify]] Alfred workflow",
+   "body": "An [[Alfred]] workflow for downloading high-resolution tiled images from museum and gallery websites using dezoomify-rs (installed via Homebrew). Core files: `dezoomify_save.py` (v1.1), `get_browser_info.js`, `test_dezoomify_workflow.zsh`.\n\n### Sub-areas\n- **Core workflow** — JXA browser info extraction; Python script with Alfred env vars; temp-file handling using `alfred_workflow_cache`; `sips` for image dimensions; v1.1\n- **Site compatibility testing** — flat table of sites with CLI / Alfred / test URL / notes columns; working: National Gallery London / AIC / Wellcome; in progress: Rijksmuseum; failing: NGV / Met / SMK / Van Gogh Museum / V&A / Tate\n- **Scraper fallback** — planned Python fallback for sites dezoomify-rs cannot auto-detect (Micrio / Zoomify / IIIF manifest / DZI patterns); Rijksmuseum is priority test case\n- **YAML custom dezoomers** — investigated as an alternative to the Python scraper for sites with stable tile URL patterns\n- **GitHub issue reports** — drafted IIIF v2 manifest parsing bug report for dezoomify-rs upstream (AIC site: `sc:Manifest` type not handled, wrong image extracted)\n- **README and documentation** — rewritten to Alfred Gallery style guide; README.md / README-GALLERY.md / alfred-workflow-setup.md / LICENCE produced\n- **Notifications** — diagnosed macOS notification permissions issue (not a script problem)\n- **Alfred workflow for Are.na posting** — scoped separately: grab page text + images and post to Are.na with citation metadata; image-picker UX is main challenge\n- **UFDC investigation** — University of Florida Digital Collections is a React/OpenSeadragon app; flat JPEGs cap at 1920px, but a tiled IIPImage DeepZoom path exists for full resolution (Sept 2026)",
+   "chat_ids": [
+    "a5b9f4fe-c7e6-4815-86c0-2681b06209fc",
+    "b17a7efe-7a9e-4700-a0ad-8e2ecfc0da6b",
+    "4a393b8a-b183-4ab7-aea4-d30f1f195994",
+    "d99878c6-854c-4c81-a05c-5f3898f8e7bb",
+    "57973b9f-9eb6-48ff-b40d-5e63b99aca90",
+    "63fc9efd-9ae4-4957-9915-d3d7dc9e8d23",
+    "c29060dc-4e43-4952-b974-702bc1bbf1ae",
+    "4151cd55-785b-4bfb-ad06-0c1a900f368c",
+    "0aafa5e4-2e49-459e-ae9d-827039d3f731",
+    "e88fd7ee-d2bf-4e31-9cad-d5d704d3e965"
+   ],
+   "todos": [
+    "Build the Python scraper fallback for sites dezoomify-rs cannot auto-detect, starting with Rijksmuseum (Micrio) and NGV (Zoomify), as designed in the handoff",
+    "Submit the drafted IIIF v2 manifest bug report to dezoomify-rs upstream",
+    "Add UFDC and the remaining untested sites (Tate, V&A, Van Gogh Museum) to the compatibility table and update the Alfred status column"
+   ]
+  },
+  {
+   "heading": "arena-picks — random [[Are.na]] board display tool",
+   "body": "A public, local browser tool that displays random blocks from Are.na boards. Stable at v1.8b. Lives in a separate repo (`mildlydiverting/are.na-picks`).\n\n### Sub-areas\n- **Core tool** — v3 API; light/dark mode toggle; per-card locking across shuffles; save-to-zip with markdown YAML frontmatter\n- **Build and repo** — vanilla JS/CSS/HTML; version comments in file header; `arena-config.js` for credentials kept out of version control\n- **Integration with are.na-toolkit** — deferred; arena-picks should eventually share a build system with arena-palette",
+   "chat_ids": [
+    "b9aec8fb-8d8a-4920-be24-a3fa1eceba61"
+   ],
+   "todos": [
+    "Review v1.8b for remaining rough edges (extending to 5–6 cards was discussed but not built)",
+    "Fold into the are.na-toolkit monorepo build system with a shared concat script",
+    "Write or update the README"
+   ]
+  },
+  {
+   "heading": "[[Flickr]] image downloader (`flickr_download.py`)",
+   "body": "A Python script in `md-tools` repo that authenticates via OAuth, downloads favourites and gallery images at best available size, and saves structured JSON metadata with full citation fields.\n\n### Sub-areas\n- **Script** — OAuth via `~/.flickr/`; deduplication across favourites + gallery; best-size selection capped at ~3K; `accessed_url` / `src_url` / `date_accessed` naming conventions\n- **Citation metadata** — `citation_markdown` and TASL fields; HTML preserved in description with `description_format: \"html\"`; location data from `flickr.photos.getInfo`; `date_created_granularity` / `date_created_note` fields\n- **Known issue** — TASL format currently collapses Title and Source rather than maintaining the four-part Title/Author/Source/Licence structure\n- **Git hygiene** — API keys were committed to history; resolved using `git filter-repo --replace-text` before public push; keys revoked and regenerated\n- **Supporting files** — README.md / TODO.taskpaper / CONTEXT.md / .gitignore produced\n- **Gallery downloader** — `flickr_gallery_download.py` built in May 2026 as part of a modular pipeline (extract, transform to canonical JSON sidecar, load); 'small pieces loosely joined'\n- **Eagle import** — `eagle_import.py` imports image + sidecar pairs into Eagle via its local web API (June 2026)",
+   "chat_ids": [
+    "0766746b-adda-4f6c-8031-cf398e59d474",
+    "4f8e40d8-a61c-4591-92ed-47c3bdb0d821",
+    "1a9be837-4359-49de-af72-f3638790d4d3"
+   ],
+   "todos": [
+    "Fix the TASL citation to the correct four-part Title / Author / Source / Licence structure",
+    "Run `eagle_import.py` and the gallery downloader end to end on a real library and record the sidecar-to-Eagle field mapping",
+    "Add source shims for Met, Tate, Wikimedia Commons and Art UK to produce equivalent structured metadata"
+   ]
+  },
+  {
+   "heading": "Structured data audit and browser plugin (image attribution)",
+   "body": "An investigation into whether institution web pages carry enough structured data (JSON-LD / Open Graph / Dublin Core / microdata) to auto-generate image citations. Concluded that no institution provides a complete citation from markup alone; a per-site parser approach is needed.\n\n### Sub-areas\n- **Audit** — 11 institutions analysed (AIC / Google Arts & Culture / Art UK / British Museum / Christie's / Wikimedia Commons / Wikipedia / Harvard / Met / Royal Academy / Tate); handoff doc saved as `structured-data-audit-handoff.md`\n- **Key findings** — `schema.org/VisualArtwork` unused in practice; Dublin Core absent everywhere; Wikimedia Commons is the only well-compliant source; AIC has rich HTML Microdata but no JSON-LD; British Museum `dt/dd` definition list is most complete gallery record\n- **Browser plugin scoping** — per-site parser architecture with API fallbacks for Met / AIC / Harvard (all have public APIs); Wikidata reconciliation as cross-site enrichment\n- **Artsy API migration** — investigated Artsy API (being retired) as a source of artist identifiers; Wikidata QIDs via P2042 confirmed as best hub\n- **Knowledgebase structure** — agreed: markdown files cross-referenced with JSON; Wikidata QID as the linking identifier\n- **Commons citation prototype** — `wiki-cite` Safari bookmarklet (Oct 2026) reads MediaWiki imageinfo, Commons Structured Data and Wikidata; outputs YAML, TASL, Harvard-style Markdown, an Eagle list and JSON\n- **JSON-LD grounding** — `@context` / `@id` / `@type` concepts related to Kim's canonical sidecar schema and Obsidian frontmatter (Aug 2026)\n- **Schema derivation** — TypeScript schema derived from simonw's museums YAML as a model for a small-museums dataset (Sept 2026)",
+   "chat_ids": [
+    "f998237f-cb0e-4b29-96c4-fc95594bcd53",
+    "582d8b7f-89eb-4297-9d01-90f09f53c65a",
+    "1e345143-3536-4deb-a32e-7d2b7f77802c",
+    "f8bd6c2e-7e1d-4e83-81ff-a115e666654f",
+    "ee94e89e-a65c-4659-9c0d-b54bcf6ea5f3"
+   ],
+   "todos": [
+    "Decide where the per-site parsers live (`md-tools` or a new repo) and define the parser interface; see the Safari clipper section",
+    "Reuse `wiki-cite` as the Wikimedia Commons shim, then add Met, AIC and Harvard API shims",
+    "Define the artist markdown file structure and write a small Wikidata reconciliation script"
+   ]
+  },
+  {
+   "heading": "Ebook and PDF library organisation (`md-pkim-library`)",
+   "body": "Organisation, metadata extraction, and classification of a ~8500-file ebook/PDF library on a mounted file server (`/Volumes/BearsShared/Books`).\n\n### Sub-areas\n- **Folder schema** — 13-topic classification with 3 utility folders (`_collections` / `_inbox` / `_purchased-ebooks-backup`); `make-folders.zsh` and `books.txt` definition file produced\n- **Metadata extraction** — `extract_book_metadata.py` scans PDFs/EPUBs; outputs to Excel with duplicate flagging (ISBN / filename / fuzzy title+author); `sanitise_for_xlsx()` fix for illegal XML characters\n- **Classification CSV** — sample batches with confidence ratings (high/medium/low); ~20–30 % of files have opaque filenames (hashes / DOI strings) needing upstream rename\n- **Markitdown batch conversion** — Python script to bulk-convert PDFs/Word docs to markdown; scanned-PDF detection and skip-with-log; `--recurse` flag\n- **Tag ontology** — five prefixes shared across Pinboard / Are.na / Eagle / Calibre: `@` people/orgs, `#` topics, `col:`, `project:`, `class:`\n- **Duplicate detection** — SHA256-based script keeping the oldest copy, moving others to `/duplicates`, with dry-run reporting (Sept 2026)\n- **Status check** — Sept 2026 review of `md-pkim-library` state: ~8,500 files at `/Volumes/BearsShared/Books`\n- **Opaque filenames** — file-type and encoding identification for extensionless or UUID-named files\n- **Folder creation** — shell patterns (file, stdin, heredoc) for creating the schema folders",
+   "chat_ids": [
+    "d4e057cd-f717-401e-a1e6-2f16a5bdf66a",
+    "ef9abb62-a59b-40e1-9c2e-fa773a01ef22",
+    "8aa64bff-cdd0-4753-8d7b-569a8303039a",
+    "c56f25ad-553a-415a-b06f-3d28c22c2827",
+    "184eff79-123a-4614-b7a3-c7a179edc3e0",
+    "4c916dbc-74f1-4f95-ae35-0ff5117317ab",
+    "879715b4-5b2b-417c-89c3-e53e28214e1f",
+    "c2ca9d52-85ed-4c43-a9d0-a2496676d814",
+    "ed18e477-3242-49cb-b9f9-cceeb7c782d7"
+   ],
+   "todos": [
+    "Use the metadata spreadsheet with Claude for Excel to improve title guessing (filenames beat first-page text)",
+    "Write an upstream rename script for opaque filenames (DOI resolution, ExifTool) before resuming CSV classification",
+    "Create the folder structure on the file server with `make-folders.zsh` (if not already done), then dry-run the duplicate finder before migrating files"
+   ]
+  },
+  {
+   "heading": "Pinboard tag analysis",
+   "body": "Python scripts to analyse tag usage patterns and combinations in a Pinboard bookmarks export.\n\n### Sub-areas\n- **Tag analysis script** — v2.2; primary / two-tag / three-tag combination counts; frequency sorting; reads from local JSON backup\n- **Network visualisation** — NetworkX graph + Plotly (interactive HTML) / Matplotlib (static fallback); Plotly import issue unresolved\n- **Tag ontology** — feeds into the shared tagging ontology work (see ebook library section)",
+   "chat_ids": [
+    "5c958f95-3c84-457b-8995-8afd9571d795",
+    "1f959f53-265c-4e76-b323-4662c0664e32"
+   ],
+   "todos": [
+    "Resolve the Plotly import issue (check the venv and reinstall if needed)",
+    "Run the network graph visualisation and use its output to inform the shared tag ontology",
+    "Rationalise Pinboard tags using the analysis before cross-referencing with Are.na and Eagle"
+   ]
+  },
+  {
+   "heading": "Pinterest migration and vault clean-up",
+   "body": "Scripts to scrape a Pinterest account, save images with metadata as markdown files, and migrate content to Are.na via the v3 API.\n\n### Sub-areas\n- **Pinterest scraper** — downloads images + creates markdown metadata files; rate throttling; session/login management\n- **Are.na uploader** — posts scraped content to Are.na channels via v3 API\n- **Verification** — not yet tested against live data; API compatibility with current v3 unconfirmed\n- **JSON to Markdown converter** — Pinterest JSON exports converted to Markdown with YAML frontmatter, local media download and throttling (Sept 2025)\n- **Watchdog uploader** — folder monitor that spots new images with `metadata.json` and prepares an Are.na upload; API step unfinished\n- **Vault triage** — Obsidian import clean-up: `move_pinterest_notes.py`, `pinterest_move.py` (moves notes and local images) and `fix_pinterest_frontmatter.py` (~500 pin exports in 'rich' and 'crude' formats)",
+   "chat_ids": [
+    "0474bcec-8cd6-4c31-82a8-11db888ec9b2",
+    "7d3694ab-1f66-4840-8df0-a67c900d6659",
+    "5d79139d-e416-43d4-b473-50fb537535de",
+    "fca685a3-e56a-42a3-ae7c-52e819df59ce",
+    "c3c23449-9fe5-4995-85be-73e3c13fa5be",
+    "1260257e-bf24-4831-9f37-88fed5c6e23b"
+   ],
+   "todos": [
+    "Test the scraper on a small Pinterest board and verify the uploader against the current Are.na v3 API",
+    "Apply `fix_pinterest_frontmatter.py` to the rich-format notes, then separate the crude-format ones for review",
+    "Decide where the Pinterest Markdown archive lives in the folder schema"
+   ]
+  },
+  {
+   "heading": "Are.na / Eagle contact sheet pipeline",
+   "body": "A planned pipeline to extract images from Are.na channels and/or Eagle and reformat them into contact sheets or PDFs. Currently blocked on scoping questions.\n\n### Sub-areas\n- **Are.na source** — `/v3/channels/{id}/contents` with image type filtering\n- **Eagle source** — local REST API on `localhost:41595`; Eagle MCP skill tested but sandbox networking prevents direct access\n- **Output options** — Paged.js / Bindery.js (browser-based) vs Python Pillow/ReportLab/WeasyPrint (programmatic)",
+   "chat_ids": [
+    "92066241-24bc-4a5c-a61f-778d5894af79",
+    "9687f37c-4d10-4834-aee1-1b09a2a7de5c"
+   ],
+   "todos": [
+    "Answer the four scoping questions (use case, unified vs separate workflows, output format, tech)",
+    "Choose an output format: contact sheet grid, moodboard or metadata catalogue",
+    "Build a minimal proof of concept: nine images from one Are.na channel laid out on a page"
+   ]
+  },
+  {
+   "heading": "Music library organisation",
+   "body": "Reorganisation of an ~30,000-file music library with some metadata inconsistencies, plus decoding of mojibake (CP1251-as-Latin-1) in Cyrillic file metadata.\n\n### Sub-areas\n- **MusicBrainz Picard** — recommended for bulk metadata correction with preview-before-apply\n- **Mojibake decoding** — CP1251 misread as Latin-1; decoder written for Cyrillic metadata recovery",
+   "chat_ids": [
+    "817eedf6-9480-4e2e-b6ff-7c0a0deb51c4"
+   ],
+   "todos": [
+    "Run MusicBrainz Picard on the full ~30,000-file library",
+    "Triage files Picard cannot match (manual review, or beets with its web interface)",
+    "Resolve any remaining Cyrillic mojibake files with the CP1251 decoder"
+   ]
+  },
+  {
+   "heading": "Local AI / RAG system",
+   "body": "Exploratory work towards a local RAG system for querying ~4000 ebooks + an image collection. Interest established; not yet built.\n\n### Sub-areas\n- **Text RAG** — Ollama + LlamaIndex; start with small text subset\n- **Image search** — CLIP for semantic image search; later phase",
+   "chat_ids": [
+    "50fe953b-6976-4429-b48e-ddd8c6b27f6e"
+   ],
+   "todos": [
+    "Install Ollama as a low-commitment first step and confirm it runs on current hardware",
+    "Test text RAG on a small subset (e.g. 50 PDFs from one topic folder) before scaling",
+    "Keep CLIP image search as a separate, later phase"
+   ]
+  },
+  {
+   "heading": "mildlydiverting.com website rebuild",
+   "body": "Rebuilding the personal website using a static site generator (Eleventy most likely) and a lightweight CMS. All conversation so far; no template built yet.\n\n### Sub-areas\n- **SSG choice** — Eleventy confirmed as most likely; Decap CMS as lowest-friction first option\n- **Design approach** — CUBE CSS / Atomic Design; extract layout from current site HTML\n- **Page types** — home / portfolio index / project page / events index / event / about",
+   "chat_ids": [
+    "5bae0951-9866-4698-a911-a64a56ec950b",
+    "5be3359f-ae09-4bf3-a2a8-09f40ae4fa86"
+   ],
+   "todos": [
+    "Confirm Eleventy as the SSG and set up the repo",
+    "Fetch and analyse the current mildlydiverting.com HTML/CSS to extract the existing layout",
+    "Build base components per Atomic Design and test against WCAG 2"
+   ]
+  },
+  {
+   "heading": "Obsidian vault management and frontmatter clean-up",
+   "body": "Connecting, auditing and tidying Kim's Obsidian vaults (`dt-knowledge-base`, `obsidian-art-reference`, `obsidian-vault`, `_development-notes`) through MCP and scripts.\n\n### Sub-areas\n- **MCP connectivity** — Local REST API & MCP Server plugin, one port per vault; `claude_desktop_config.json` via `mcp-remote`; Node/nvm and `npx` gotchas; Dropbox-hosted vaults time out\n- **Frontmatter tooling** — `add_frontmatter_property.py` and `list_frontmatter_values.py` (dry-run, preserve formatting)\n- **Property inventory** — property names and types per vault; only `dt-knowledge-base` has a formal schema (`SCHEMA.md`); DataviewJS listing snippets\n- **Pinterest-import triage** — three scripts for the ~500 pin exports (see section 8)\n- **YAML repair and tag consolidation** — broken date keys across import batches; tag clustering plan; Obsidian CLI used cautiously after dry-runs\n- **Attachment repair** — `.png` links against `.jpg` files in `_attachments` fixed with `sed`",
+   "chat_ids": [
+    "036738f7-b9e7-43db-83e7-f711122c5c70",
+    "f06e3bdb-ec97-4842-9b11-66d7fe37bf6a",
+    "0474bcec-8cd6-4c31-82a8-11db888ec9b2",
+    "33971930-c804-4970-897f-027eaa3971e6",
+    "7d3694ab-1f66-4840-8df0-a67c900d6659",
+    "fd523a6b-1534-4095-8e84-8bd92c05711b",
+    "5d79139d-e416-43d4-b473-50fb537535de",
+    "54368819-447e-46a8-8a8a-3b58b88d94e2",
+    "edc4ce1b-40db-4920-b78c-9bb4f72d08f1",
+    "02a9292c-bff3-4983-93de-429cd6408460"
+   ],
+   "todos": [
+    "Finish the art-reference vault harmonisation (frontmatter, tags, categories, types), starting with a dry-run report now MCP is stable",
+    "Run the tag-consolidation plan from the May clustering session against the controlled vocabulary, using the Obsidian CLI with dry-runs",
+    "Check the other vaults' `_attachments` folders for the same `.png` / `.jpg` mismatch"
+   ]
+  },
+  {
+   "heading": "dt-knowledge-base — drawing knowledge base",
+   "body": "A structured Obsidian vault of drawing exercises and artist pages for teaching life drawing, modelled on a Karpathy-style wiki, with schema, lint and conversion tooling.\n\n### Sub-areas\n- **Schema and maintenance** — `SCHEMA.md` with controlled vocabularies; prompts for linting, wikilink generation and context enrichment; chat (vault MCP) and Cowork (bulk edits) used together\n- **Document conversion** — `convert-folder-to-md.py` (markitdown, scanned-PDF detection, OCR fallback) run from an Automator Quick Action; broken venv rebuilt (July 2026)\n- **Authority data** — artist references tied to Wikidata QIDs and Getty ULAN (see section 5)\n- **Property audit** — vault properties and types documented (Sept 2026)\n- **Attachments** — hash-named images in `_attachments`; extension fix (Oct 2026)",
+   "chat_ids": [
+    "036738f7-b9e7-43db-83e7-f711122c5c70",
+    "33971930-c804-4970-897f-027eaa3971e6",
+    "1e345143-3536-4deb-a32e-7d2b7f77802c",
+    "ebf75648-f2c7-4935-84e5-a83e2d400a41",
+    "c7bc11bd-5235-40e6-9ac4-fb7f430bc72d",
+    "184eff79-123a-4614-b7a3-c7a179edc3e0"
+   ],
+   "todos": [
+    "Re-point the Automator Quick Action at the rebuilt venv and test with one scanned and one text PDF",
+    "Backfill Wikidata QIDs and ULAN IDs into artist files via SPARQL reconciliation",
+    "Run the lint pass after the attachment fix and log any remaining broken links"
+   ]
+  },
+  {
+   "heading": "Safari clipper — universal web ingest",
+   "body": "An idea for one Safari extension that consolidates dezoomify, citation grabbing, metadata sniffing, batch image download and multi-destination saving, prototyped so far as the `wiki-cite` bookmarklet.\n\n### Sub-areas\n- **Concept** — dezoomify IIIF images, auto-citation, schema.org / JSON-LD / Open Graph extraction, best-guess fallbacks, batch select-and-download, routing to Are.na, Markdown + images, Pinboard; YAML or JSON sidecars\n- **Port feasibility** — SocialSnag via `safari-web-extension-converter`; missing `chrome.downloads` is the blocker\n- **Prototype** — `wiki-cite` bookmarklet in `md - pkim and tools/wiki-cite/`\n- **Parser inputs** — structured-data audit findings and tiled-image detection (section 2)",
+   "chat_ids": [
+    "f998237f-cb0e-4b29-96c4-fc95594bcd53",
+    "6c8df119-bb9c-4344-a5bb-f9113135040c",
+    "a5b9f4fe-c7e6-4815-86c0-2681b06209fc",
+    "d9f737ff-c73f-4ef1-9504-0e2c348708c6",
+    "ee94e89e-a65c-4659-9c0d-b54bcf6ea5f3"
+   ],
+   "todos": [
+    "Decide the architecture (Safari Web Extension vs extending the bookmarklet) and list a first-release feature set, citation and metadata first",
+    "Extend `wiki-cite` to the Met, AIC and Harvard APIs as the first per-site parsers",
+    "Prototype a download workaround for Safari's missing `chrome.downloads` (e.g. native messaging or the Swift side)"
+   ]
+  },
+  {
+   "heading": "Keynote ↔ Obsidian ↔ Eagle bridge",
+   "body": "Python tools to link Keynote decks, Obsidian vaults and the Eagle library, planned as a new `md-keynote-tools` repo (plan saved as `keynote-integration-plan.md`).\n\n### Sub-areas\n- **Phase 1: keynote-to-obsidian** — `keynote-parser` for closed `.key` files, PyXA for live decks; Markdown plus images with dry-run / apply; direct `pathlib` writes to avoid MCP-during-Dropbox-sync trouble\n- **Phase 2: eagle-to-keynote** — Platypus app in Eagle's Open With menu; sidecar `metadata.json` first, HTTP API fallback; PyXA writes slides\n- **Shared `SlideRecord` schema** — used in both directions\n- **Eagle groundwork** — `eagle_import.py` and Eagle connectivity findings (sandbox cannot reach localhost)\n- **Open questions** — new repo vs `md-tools`, default vault, default Keynote theme, three Eagle test items",
+   "chat_ids": [
+    "3b7b1206-4677-4835-878a-904822190af8",
+    "0766746b-adda-4f6c-8031-cf398e59d474",
+    "92066241-24bc-4a5c-a61f-778d5894af79"
+   ],
+   "todos": [
+    "Hand the plan to Sonnet to scaffold `md-keynote-tools` and build Phase 1",
+    "Validate Phase 1 on `2026-10 shadow stories.key` with a three-slide fixture",
+    "Answer the four deferred questions, then start Phase 2"
+   ]
+  },
+  {
+   "heading": "Titler (Python) — Markdown link titler",
+   "body": "A rebuilt macOS Service plus Sublime Text plugin that turns bare URLs into Markdown links carrying the page title.\n\n### Sub-areas\n- **Service rebuild** — two Automator workflows (titled links; extract links) running an embedded script via `/bin/bash`; the old Ruby-era format was no longer recognised\n- **`titler.py`** — entity decoding, title tags with attributes, site-name trimming, `utm_` removal, hostname fallback; options `links`, a number, `clipboard`, `debug`\n- **Sublime plugin** — `titler_command.py`, keymap and `.sublime-commands` (Sublime's Services menu does not pass the selection)\n- **Documentation** — README covering both",
+   "chat_ids": [
+    "96dbf9ff-e21b-4b1e-b90a-dedd14ea44f6"
+   ],
+   "todos": [
+    "Test the palette entries and clipboard mode in real Sublime (so far only checked against a mocked API and JSON validity)",
+    "Give Titler a home repo (e.g. `md-tools`) and commit it with the README",
+    "Check behaviour on JavaScript-rendered or paywalled titles and note the exceptions"
+   ]
+  },
+  {
+   "heading": "Environment, handoffs and project housekeeping",
+   "body": "Developer-environment set-up, handoff practice, todo extraction and reporting across the `md-*` repos.\n\n### Sub-areas\n- **Developer environment** — pyenv, venvs, zsh vs bash, `.env`, global gitignore, SSH; running `Developer Environment Setup` reference\n- **Handoffs and pick-up points** — handoff template; pickup suggestions; status reviews\n- **Todo extraction** — TaskPaper lists from all chats (April; July–August 2026)\n- **Route map** — `tooling-route-map-v1.md`, about 18 strands, dependency-first\n- **Reporting** — this chat index and summary (earlier run May 2026)\n- **Claude mechanics** — uploads vs project knowledge vs memory; Cowork for bulk work\n- **Shell and Automator snippets** — folder creation; Python lookup in Automator",
+   "chat_ids": [
+    "6fca87de-048e-46c6-97f5-8c2b1511ee49",
+    "c56f25ad-553a-415a-b06f-3d28c22c2827",
+    "ebf75648-f2c7-4935-84e5-a83e2d400a41",
+    "c6ef591f-3509-407a-a00a-fb0a18af31a6",
+    "c106a451-9f6a-4f28-8a5f-38a6948a04d7",
+    "1783163d-bbce-4924-88fd-0535a67733ce",
+    "0aafa5e4-2e49-459e-ae9d-827039d3f731",
+    "5bae0951-9866-4698-a911-a64a56ec950b",
+    "5be3359f-ae09-4bf3-a2a8-09f40ae4fa86",
+    "ed18e477-3242-49cb-b9f9-cceeb7c782d7"
+   ],
+   "todos": [
+    "Set the global gitignore (found empty in May) and decide whether to recover the SSH key",
+    "Fold the route-map priorities into the TaskPaper inbox and retire stale todos",
+    "Re-run this index and summary periodically (e.g. monthly) into `_inbox`"
+   ]
+  },
+  {
+   "heading": "Shared tag ontology and classification",
+   "body": "The overarching vocabulary (prefixes, topics, folders, properties) meant to span Finder, Pinboard, Are.na, Eagle, Calibre and Obsidian; home repo `md-pkim-classification`.\n\n### Sub-areas\n- **Tag prefixes** — `@` people and organisations, `#` topics, `col:` collections, `project:`, `class:`\n- **Folder schema** — 13 topic folders plus 3 utility folders, two levels maximum, tiebreaker rules\n- **Evidence** — Pinboard tag-combination analysis; Obsidian tag clustering and property inventory\n- **Authority and linked data** — Wikidata as hub, Getty ULAN, JSON-LD concepts\n- **Colour vocabulary** — hex ordering and grouping; colour naming (color.pizza)",
+   "chat_ids": [
+    "33971930-c804-4970-897f-027eaa3971e6",
+    "ce8a1b23-d55e-4a93-9965-4a8f3924894f",
+    "1e345143-3536-4deb-a32e-7d2b7f77802c",
+    "c6ef591f-3509-407a-a00a-fb0a18af31a6",
+    "edc4ce1b-40db-4920-b78c-9bb4f72d08f1",
+    "02a9292c-bff3-4983-93de-429cd6408460",
+    "f8bd6c2e-7e1d-4e83-81ff-a115e666654f",
+    "c2ca9d52-85ed-4c43-a9d0-a2496676d814",
+    "5c958f95-3c84-457b-8995-8afd9571d795",
+    "1f959f53-265c-4e76-b323-4662c0664e32"
+   ],
+   "todos": [
+    "Reconcile the Obsidian property inventory and Pinboard tag clusters into one controlled vocabulary in `md-pkim-classification`",
+    "Publish it as a machine-readable file (YAML or JSON-LD) that each tool can import",
+    "Map Eagle, Are.na and Calibre tags to the prefixes and write a conversion script"
+   ]
+  }
+ ],
+ "notes": [
+  "**Project scope**: `recent_chats` cannot filter by project. All 72 chats it returned are md-pkim related, so all are treated as belonging to this project.",
+  "**Borderline chats**: *Decoding a garbled song title*, *Local AI model training*, *Uploaded files and project memory* and *Titler service errors on macOS* sit at the edge of the project's stated scope but are included.",
+  "**Titler** has no stated home repo yet.",
+  "**Claude Code / Cowork sessions** (*Titler*, *Keynote automation and Eagle integration*) had no generated summary, so their descriptions come from transcript excerpts.",
+  "**Sections 7, 9, 10, 11 and 12** are unchanged since May 2026 because there are no newer chats on them.",
+  "**Next todos** are inferred from where each chat ended, and some may since have been done outside Claude.",
+  "**Section numbering** has changed since the May version (sections 13–19 are new)."
+ ]
+}

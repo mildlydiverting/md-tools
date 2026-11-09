@@ -409,7 +409,7 @@
         font-family: ui-monospace, "SF Mono", Menlo, monospace;
         font-size: 11.5px; line-height: 1.5;
         white-space: pre-wrap; word-break: break-word; width: 100%;
-        box-sizing: border-box; min-height: 160px; max-height: 50vh;
+        box-sizing: border-box; min-height: 340px; max-height: 70vh;
         resize: vertical;
       }
       .row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
@@ -436,10 +436,10 @@
           <button class="close" aria-label="Close">×</button>
         </header>
         <div class="tabs" role="tablist">
-          <button class="tab active" data-fmt="yaml">YAML</button>
-          <button class="tab" data-fmt="smush">Markdown (yours)</button>
+          <button class="tab active" data-fmt="smush">Markdown</button>
           <button class="tab" data-fmt="tasl">TASL</button>
           <button class="tab" data-fmt="eagle">Eagle</button>
+          <button class="tab" data-fmt="yaml">YAML</button>
           <button class="tab" data-fmt="json">JSON</button>
         </div>
         <div class="body">
@@ -473,7 +473,7 @@
       out.value = fmts[fmt] || '';
     };
     tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.fmt)));
-    show('yaml');
+    show('smush');
 
     shadow.querySelector('.close').addEventListener('click', () => root.remove());
 
@@ -489,10 +489,10 @@
 
     shadow.getElementById('copyall').addEventListener('click', async (e) => {
       const bundle =
-        '--- YAML ---\n' + parts.yaml +
-        '\n\n--- Markdown (yours) ---\n' + parts.smush +
+        '--- Markdown ---\n' + parts.smush +
         '\n\n--- TASL ---\n' + parts.tasl +
         '\n\n--- Eagle ---\n' + parts.eagle +
+        '\n\n--- YAML ---\n' + parts.yaml +
         '\n\n--- JSON ---\n' + parts.json;
       try { await navigator.clipboard.writeText(bundle); flash(e.target, 'Copied ✓'); }
       catch { flash(e.target, 'Copy failed'); }
