@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.mildlydiverting.zoom-personal-link</string>
+	<key>category</key>
+	<string>Internet</string>
+	<key>connections</key>
+	<dict>
+		<key>816667CB-E309-42DA-A6AE-856C215E2717</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E244FEC6-9942-4EC6-A9D8-BBE08A039FDB</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>BA0AE0BB-4453-459D-A2AD-E5BF953C5B0E</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E244FEC6-9942-4EC6-A9D8-BBE08A039FDB</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>FAD6720B-88F3-4395-AF9E-A9E596E167D9</string>
+				<key>modifiers</key>
+				<integer>524288</integer>
+				<key>modifiersubtext</key>
+				<string>Include ID and Passcode</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Kim Plowright</string>
+	<key>description</key>
+	<string>Paste your Zoom Personal Meeting ID</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>md Zoom Personal Link</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>action</key>
+				<integer>0</integer>
+				<key>argument</key>
+				<integer>0</integer>
+				<key>focusedappvariable</key>
+				<false/>
+				<key>focusedappvariablename</key>
+				<string></string>
+				<key>hotkey</key>
+				<integer>6</integer>
+				<key>hotmod</key>
+				<integer>1703936</integer>
+				<key>hotstring</key>
+				<string>Z</string>
+				<key>leftcursor</key>
+				<false/>
+				<key>modsmode</key>
+				<integer>0</integer>
+				<key>relatedAppsMode</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.trigger.hotkey</string>
+			<key>uid</key>
+			<string>816667CB-E309-42DA-A6AE-856C215E2717</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<true/>
+				<key>clipboardtext</key>
+				<string>{var:zoomurl}</string>
+				<key>ignoredynamicplaceholders</key>
+				<true/>
+				<key>transient</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>E244FEC6-9942-4EC6-A9D8-BBE08A039FDB</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>keyword</key>
+				<string>zp</string>
+				<key>subtext</key>
+				<string>Paste your Zoom Personal Meeting ID URL</string>
+				<key>text</key>
+				<string>Zoom PMI Link</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>BA0AE0BB-4453-459D-A2AD-E5BF953C5B0E</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<true/>
+				<key>clipboardtext</key>
+				<string>{var:zoominvite}
+
+</string>
+				<key>ignoredynamicplaceholders</key>
+				<true/>
+				<key>transient</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>FAD6720B-88F3-4395-AF9E-A9E596E167D9</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string># Quick paste for your Zoom personal meeting room link
+
+Use a hotkey or 'zp' keyword to paste your Zoom Personal Meeting ID (PMI) link in to whatever context you are working in.
+
+Hold option to add the full meeting invite text.
+
+# To Configure:
+
+Copy your PMI meeting invite to your personal room from Zoom. You can find this in the dropdown menu next to the orange 'New meeting' button on the Zoom home screen.
+
+Your personal link has your 10 digit meeting room ID and then a load of random letters and numbers at the end of the URL after the ```?pwd=```
+
+Here's an example PMI URL:
+
+ ```https://us02web.zoom.us/0123456789?pwd=AHashedVers10nOFY0URpassCodeYZ.1```
+
+Want a nicer looking URL? You can [customise your PMI in Zoom](https://support.zoom.com/hc/en/article?id=zm_kb&amp;sysparm_article=KB0068443)</string>
+	<key>uidata</key>
+	<dict>
+		<key>816667CB-E309-42DA-A6AE-856C215E2717</key>
+		<dict>
+			<key>xpos</key>
+			<real>50</real>
+			<key>ypos</key>
+			<real>50</real>
+		</dict>
+		<key>BA0AE0BB-4453-459D-A2AD-E5BF953C5B0E</key>
+		<dict>
+			<key>xpos</key>
+			<real>55</real>
+			<key>ypos</key>
+			<real>215</real>
+		</dict>
+		<key>E244FEC6-9942-4EC6-A9D8-BBE08A039FDB</key>
+		<dict>
+			<key>xpos</key>
+			<real>320</real>
+			<key>ypos</key>
+			<real>140</real>
+		</dict>
+		<key>FAD6720B-88F3-4395-AF9E-A9E596E167D9</key>
+		<dict>
+			<key>xpos</key>
+			<real>330</real>
+			<key>ypos</key>
+			<real>275</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>zp</string>
+				<key>placeholder</key>
+				<string>zp</string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Default is 'zp'.</string>
+			<key>label</key>
+			<string>Alfred Keyword Trigger</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>keyword</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+				<key>verticalsize</key>
+				<integer>3</integer>
+			</dict>
+			<key>description</key>
+			<string>Your personal link has /[your 10 digit meeting room ID]?pwd=[a load of letters and numbers] at the end of the URL.</string>
+			<key>label</key>
+			<string>PMI Link</string>
+			<key>type</key>
+			<string>textarea</string>
+			<key>variable</key>
+			<string>zoomurl</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string></string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<false/>
+				<key>verticalsize</key>
+				<integer>9</integer>
+			</dict>
+			<key>description</key>
+			<string>Paste the full text of your personal meeting room invite here. This includes info about your passcode, meeting ID etc.</string>
+			<key>label</key>
+			<string>PMI Full Invite</string>
+			<key>type</key>
+			<string>textarea</string>
+			<key>variable</key>
+			<string>zoominvite</string>
+		</dict>
+	</array>
+	<key>version</key>
+	<string>1.1</string>
+	<key>webaddress</key>
+	<string>mildlydiverting.com</string>
+</dict>
+</plist>

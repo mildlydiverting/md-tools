@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+  Three Things — v2.0 (2026-11-16)
+  Changelog
+  v2.1: Shows the todo file path and an "Open in TaskPaper" file:// link.
+        The path comes from config.js (gitignored; see config.example.js)
+        because browsers never reveal a dropped file's folder.
+  v2.0: Reads your TaskPaper todo file (drop it on the page, or choose it).
+        Shows the NEXT: block, slips and recent wins. Read-only: it never
+        writes to the file and stores nothing. Works in Safari.
+        The v1 entry form and browser log are gone; the todo file is the log.
+  v1.0: Local page with its own form and browser storage.
+  Pairs with the three-things-checkin skill (SKILL.md in this folder).
+-->
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Things</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#bd463b; --ink:#000; --bg:#fff; --grey:#bbb; --grey-bg:#f4f4f4; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); font-family:'Karla',sans-serif; color:var(--ink); padding:32px 20px 60px; min-height:100vh; }
+  .wrap { max-width:560px; margin:0 auto; }
+  h1 { font-weight:700; font-size:2rem; letter-spacing:-0.01em; margin:0 0 4px; }
+  .sub { font-size:0.85rem; opacity:0.6; margin-bottom:28px; }
+  .card { border:1px solid var(--grey); padding:20px; margin-bottom:20px; }
+  .card h2 { font-weight:700; font-size:0.85rem; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.08em; color:var(--primary); }
+  .drop { border:2px dashed var(--grey); padding:28px 16px; text-align:center; font-size:0.9rem; }
+  .drop.over { border-color:var(--primary); background:var(--grey-bg); }
+  .drop small { display:block; opacity:0.6; margin-top:6px; }
+  button { font-family:'Karla',sans-serif; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; padding:11px 18px; cursor:pointer; border:0; background:var(--primary); color:var(--bg); margin-top:12px; }
+  button.secondary { background:transparent; color:var(--primary); border:2px solid var(--primary); padding:9px 16px; }
+  button:hover { opacity:0.85; }
+  .slot { margin-top:14px; }
+  .slot:first-of-type { margin-top:0; }
+  .slot-label { font-size:0.78rem; font-weight:500; opacity:0.75; margin-bottom:4px; }
+  .task { display:flex; gap:8px; align-items:flex-start; font-size:0.95rem; padding:2px 0; }
+  .task.done { opacity:0.4; text-decoration:line-through; }
+  .task.sub { margin-left:22px; font-size:0.85rem; }
+  .mark { display:inline-block; min-width:20px; text-align:center; background:var(--primary); color:var(--bg); font-weight:700; font-size:0.75rem; padding:0 5px; }
+  .age { font-size:0.78rem; color:var(--primary); font-weight:700; margin-left:auto; white-space:nowrap; }
+  .empty { opacity:0.5; font-size:0.85rem; }
+  .note { font-size:0.85rem; margin-top:12px; padding:10px; background:var(--grey-bg); }
+  .status { font-size:0.78rem; color:var(--primary); font-weight:500; margin-top:8px; }
+  .copy-box { white-space:pre-wrap; font-size:0.8rem; background:var(--grey-bg); border:1px solid var(--grey); padding:12px; margin-top:12px; display:none; }
+  .pathline { font-size:0.78rem; margin-top:12px; word-break:break-all; }
+  .pathline code { background:var(--grey-bg); padding:1px 4px; }
+  .pathline a { color:var(--primary); font-weight:700; }
+  .pathline .warn { color:var(--primary); font-weight:700; display:block; margin-top:4px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Three Things</h1>
+  <div class="sub" id="todayLabel"></div>
+
+  <div class="card" id="loadCard">
+    <h2>Your todo file</h2>
+    <div class="drop" id="drop">
+      Drop <strong>todo.taskpaper</strong> here
+      <small>or</small>
+      <button type="button" id="pick">Choose file</button>
+      <input type="file" id="file" accept=".taskpaper,.md,.txt,text/plain" hidden>
+      <small>Read only. Nothing is saved or sent anywhere.</small>
+    </div>
+    <div class="pathline" id="pathLoad"></div>
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <div id="view" hidden>
+    <div class="pathline" id="pathView" style="margin:-8px 0 16px"></div>
+    <div class="card"><h2>Today</h2><div id="today"></div></div>
+    <div class="card" id="slipCard" hidden><h2>Slipping</h2><div id="slips"></div><div class="note" id="slipNote" hidden></div></div>
+    <div class="card"><h2>Done in the last 7 days</h2><div id="recent"></div></div>
+    <button class="secondary" type="button" id="copy">Copy summary for chat</button>
+    <button class="secondary" type="button" id="again">Load a fresh copy</button>
+    <div class="copy-box" id="copyBox"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+// ---- PARSER (pure functions; no DOM) ----
+const SLOTS = [
+  ['fixed', 'Fixed in the diary today'],
+  ['worse', "Will feel worse if it doesn't move today"],
+  ['win',   'Quick win']
+];
+
+function parseTags(line) {
+  const tags = {};
+  let text = line;
+  const re = /\s@([A-Za-z][\w-]*)(?:\(([^)]*)\))?/g;
+  let m;
+  while ((m = re.exec(' ' + line)) !== null) tags[m[1]] = m[2] === undefined ? true : m[2];
+  text = (' ' + line).replace(re, '').trim();
+  return { tags, text };
+}
+
+function parseItem(raw) {
+  const body = raw.replace(/^\t+/, '').replace(/^-\s+/, '');
+  const { tags, text } = parseTags(body);
+  return {
+    text, tags,
+    slot: typeof tags.slot === 'string' ? tags.slot : null,
+    date: typeof tags.date === 'string' ? tags.date : null,
+    done: tags.done !== undefined,
+    doneDate: typeof tags.done === 'string' ? tags.done : null,
+    mark: tags.urgent ? '!!' : tags.high ? '!' : '',
+    children: []
+  };
+}
+
+// Returns { next: [items with children], recentDone: [items] }
+function parseFile(text, todayISO) {
+  const lines = text.split(/\r?\n/);
+  const next = [];
+  const recentDone = [];
+  let inNext = false, current = null;
+  const cutoff = addDays(todayISO, -7);
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const depth = (line.match(/^\t*/)[0]).length;
+    if (depth === 0) { inNext = /^NEXT:/.test(line); current = null; continue; }
+    if (inNext) {
+      if (depth === 1) { current = parseItem(line); next.push(current); }
+      else if (current) current.children.push(parseItem(line));
+    }
+    if (/@slot\(/.test(line) && /@done/.test(line)) {
+      const it = parseItem(line);
+      if (it.doneDate && it.doneDate >= cutoff && !(inNext && depth === 1)) recentDone.push(it);
+    }
+  }
+  return { next, recentDone };
+}
+
+function dayNumber(iso) { const [y, m, d] = iso.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
+function addDays(iso, n) { const t = new Date((dayNumber(iso) + n) * 86400000); return t.toISOString().slice(0, 10); }
+function daysOn(item, todayISO) { return item.date ? dayNumber(todayISO) - dayNumber(item.date) : 0; }
+
+function buildSummary(parsed, todayISO) {
+  let t = 'Three things, ' + todayISO + '\n';
+  for (const [key, label] of SLOTS) {
+    const items = parsed.next.filter(i => i.slot === key);
+    t += '\n' + label + ':\n';
+    if (!items.length) t += '  (nothing set)\n';
+    for (const i of items) {
+      const age = daysOn(i, todayISO);
+      t += '  ' + (i.mark ? i.mark + ' ' : '- ') + i.text + ' [' + (i.done ? 'done' : 'not done') + (!i.done && age > 0 ? ', on NEXT ' + age + ' day' + (age > 1 ? 's' : '') : '') + ']\n';
+    }
+  }
+  const slips = parsed.next.filter(i => !i.done && daysOn(i, todayISO) >= 1);
+  if (slips.length) { t += '\nSlipping:\n'; slips.forEach(i => t += '  ' + i.text + ' (' + daysOn(i, todayISO) + ' days)\n'); }
+  return t;
+}
+// ---- END PARSER ----
+
+// ---- PAGE ----
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function todayISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+const TODAY = todayISO();
+$('todayLabel').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+function taskHTML(i, sub) {
+  const age = !i.done && daysOn(i, TODAY) >= 1 ? '<span class="age">' + daysOn(i, TODAY) + ' day' + (daysOn(i, TODAY) > 1 ? 's' : '') + '</span>' : '';
+  return '<div class="task' + (i.done ? ' done' : '') + (sub ? ' sub' : '') + '">' +
+    (i.mark ? '<span class="mark">' + i.mark + '</span>' : '') +
+    '<span>' + esc(i.text) + '</span>' + age + '</div>';
+}
+
+let parsed = null;
+
+// Path line. Browsers only reveal a dropped file's name, never its folder,
+// so the full path comes from config.js.
+const TODO_PATH = (window.CHECKIN_CONFIG && window.CHECKIN_CONFIG.todoPath) || '';
+function pathHTML(loadedName) {
+  if (!TODO_PATH) return '<span class="warn">No path set. Copy config.example.js to config.js and add the full path to your todo file.</span>';
+  const url = 'file://' + encodeURI(TODO_PATH).replace(/#/g, '%23');
+  let h = (loadedName ? 'Reading from: ' : 'Expected file: ') + '<code>' + esc(TODO_PATH) + '</code> ' +
+          '<a href="' + url + '">Open in TaskPaper</a>';
+  const want = TODO_PATH.split('/').pop();
+  if (loadedName && loadedName !== want) h += '<span class="warn">You loaded "' + esc(loadedName) + '", not "' + esc(want) + '". The path above is from config.js, not from the file you chose.</span>';
+  return h;
+}
+$('pathLoad').innerHTML = pathHTML('');
+
+function render() {
+  let html = '';
+  for (const [key, label] of SLOTS) {
+    const items = parsed.next.filter(i => i.slot === key);
+    html += '<div class="slot"><div class="slot-label">' + label + '</div>';
+    html += items.length ? items.map(i => taskHTML(i) + i.children.map(c => taskHTML(c, true)).join('')).join('') : '<div class="empty">Nothing set</div>';
+    html += '</div>';
+  }
+  const others = parsed.next.filter(i => !SLOTS.some(s => s[0] === i.slot));
+  if (others.length) html += '<div class="slot"><div class="slot-label">Also on NEXT (no slot)</div>' + others.map(i => taskHTML(i)).join('') + '</div>';
+  if (!parsed.next.length) html = '<div class="empty">No NEXT: block found. Say "check in" in Claude to set your three things.</div>';
+  $('today').innerHTML = html;
+
+  const slips = parsed.next.filter(i => !i.done && daysOn(i, TODAY) >= 1);
+  $('slipCard').hidden = !slips.length;
+  $('slips').innerHTML = slips.map(i => taskHTML(i)).join('');
+  const long = slips.some(i => daysOn(i, TODAY) >= 2);
+  $('slipNote').hidden = !long;
+  if (long) $('slipNote').textContent = 'Something has been here two days or more. Options: make it smaller, ask someone for help, or do an online pomodoro with friends.';
+
+  $('recent').innerHTML = parsed.recentDone.length
+    ? parsed.recentDone.sort((a, b) => b.doneDate.localeCompare(a.doneDate)).map(i => taskHTML(i)).join('')
+    : '<div class="empty">Nothing marked done yet.</div>';
+  $('view').hidden = false;
+  $('loadCard').hidden = true;
+}
+
+async function loadFile(file) {
+  try {
+    parsed = parseFile(await file.text(), TODAY);
+    $('pathView').innerHTML = pathHTML(file.name);
+    render();
+  } catch (err) {
+    $('statusMsg').textContent = 'Could not read that file.';
+  }
+}
+
+$('pick').onclick = () => $('file').click();
+$('file').onchange = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+$('again').onclick = () => { $('view').hidden = true; $('loadCard').hidden = false; $('copyBox').style.display = 'none'; $('file').value = ''; };
+
+$('copy').onclick = async () => {
+  const text = buildSummary(parsed, TODAY);
+  const box = $('copyBox');
+  box.textContent = text; box.style.display = 'block';
+  try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy summary for chat', 2000); }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+};
+</script>
+</body>
+</html>

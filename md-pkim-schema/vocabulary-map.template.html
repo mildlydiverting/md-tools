@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PKIM vocabulary map</title>
+<!--
+  PKIM vocabulary map. One file, no build tools, works offline.
+  The data is a copy of pkim-vocabulary.yaml, embedded below as JSON.
+  To refresh it after editing the YAML, run:
+    python3 md-tools-pkim/md-pkim-schema/build_vocabulary_map.py
+  Do not edit the data block by hand: edit the YAML.
+-->
+<style>
+:root{
+  --ground:#FFF8E7; --panel:#F6EEDA; --ink:#26292B; --ink2:#4B575F; --rule:#DCCEB3; --accent:#bd463b; --sage:#DFE6D4;
+  --g1:#bd463b; --g2:#0f8f7f; --g3:#a87c00; --g4:#2b6cb0; --g5:#7a8a00;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --ground:#2b2d2e; --panel:#343738; --ink:#E9E1CF; --ink2:#B9B3A4; --rule:#4B575F; --accent:#cf5f54; --sage:#3b4239;
+    --g1:#cf5f54; --g2:#17a08d; --g3:#b38f10; --g4:#5489cc; --g5:#8c9e30; }
+}
+*{box-sizing:border-box}
+html{font-size:17px}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Karla,"Helvetica Neue",Helvetica,Arial,sans-serif;line-height:1.45}
+header{padding:1rem 1.25rem .5rem}
+h1{font-size:1.5rem;margin:0 0 .15rem}
+h2{font-size:1.15rem;margin:1.2rem 0 .4rem}
+h3{font-size:1rem;margin:.9rem 0 .3rem}
+p{margin:.3rem 0 .6rem;max-width:42rem}
+.sub{color:var(--ink2)}
+nav{display:flex;gap:.4rem;flex-wrap:wrap;padding:.4rem 1.25rem .8rem}
+button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--ink2);padding:.35rem .7rem;cursor:pointer;border-radius:0}
+button[aria-pressed="true"],button.on{background:var(--ink);color:var(--ground)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:1rem;padding:0 1.25rem 2rem}
+@media (max-width:60rem){main{grid-template-columns:1fr}}
+#detail{background:var(--panel);padding:.9rem 1rem;align-self:start;position:sticky;top:.5rem;max-height:calc(100vh - 1rem);overflow:auto}
+#detail h2{margin-top:0}
+dl{margin:0}
+dt{font-weight:700;margin-top:.55rem}
+dd{margin:0}
+.view{display:none}
+.view.on{display:block}
+.controls{display:flex;flex-wrap:wrap;gap:.35rem .5rem;align-items:center;margin:.2rem 0 .6rem}
+label.chk{display:inline-flex;gap:.3rem;align-items:center;padding:.15rem .4rem;background:var(--panel)}
+svg{width:100%;height:72vh;min-height:30rem;background:var(--panel);display:block;touch-action:none}
+svg text{font-size:15px;fill:var(--ink);cursor:pointer;user-select:none}
+svg .edge{stroke:var(--ink2);stroke-width:1.5;fill:none}
+svg .edge.rel{stroke-dasharray:4 5;opacity:.75}
+svg .node.sel text{font-weight:700;text-decoration:underline}
+svg .dim{opacity:.4}
+.sw{display:inline-block;width:.8rem;height:.8rem;vertical-align:-.05rem;margin-right:.35rem;border:2px solid currentColor}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1.1rem;margin:.5rem 0}
+.legend span{white-space:nowrap}
+.sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(17rem,1fr));gap:1rem}
+.set{background:var(--panel);padding:.7rem .8rem}
+.set h3{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem}
+.chip{padding:.15rem .45rem;background:var(--ground);border:1px solid var(--rule);border-left-width:.5rem}
+.chip.proposed{border-style:dashed;border-left-style:solid}
+.chip.sel{outline:3px solid var(--accent)}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--ground);border:1px solid var(--ink2);padding:.35rem .5rem;border-radius:0}
+input[type=text]{width:16rem;max-width:100%}
+table{border-collapse:collapse;width:100%;margin:.4rem 0 1rem}
+th,td{text-align:left;vertical-align:top;padding:.35rem .6rem .35rem 0;border-bottom:1px solid var(--rule)}
+a{color:var(--accent)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--sage);padding:0 .2rem}
+.yes{font-weight:700}
+.no{font-weight:700;color:var(--accent)}
+#result{background:var(--panel);padding:.8rem 1rem;max-width:46rem}
+.tree ul{list-style:none;margin:0;padding-left:1.2rem;border-left:1px solid var(--rule)}
+.tree>ul{padding-left:0;border-left:0}
+.tree li{margin:.12rem 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>PKIM vocabulary map</h1>
+  <p class="sub">A picture of <code>pkim-vocabulary.yaml</code>. Click any term to see what it is, what it sits in and what it links to. <span id="stamp"></span></p>
+</header>
+<nav id="tabs">
+  <button data-view="web" aria-pressed="true">Web of terms</button>
+  <button data-view="sets" aria-pressed="false">Sets</button>
+  <button data-view="tree" aria-pressed="false">Folder tree</button>
+  <button data-view="try" aria-pressed="false">Try a tag</button>
+  <button data-view="sources" aria-pressed="false">Tag sources</button>
+  <button data-view="open" aria-pressed="false">Open questions</button>
+</nav>
+<main>
+<div>
+  <section class="view on" id="v-web">
+    <p>Each square is a concept. A solid line with an arrow points from a narrower term to its broader one. A dotted line means "related". Drag a term to move it. Pick the sets to show.</p>
+    <div class="controls" id="webSchemes"></div>
+    <div class="controls">
+      <label class="chk"><input type="checkbox" id="neigh" checked> also show linked terms from outside the chosen sets</label>
+      <button id="relayout">Tidy the layout</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <svg id="svg" role="img" aria-label="Network of vocabulary concepts. The Sets tab shows the same terms as lists."><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs><g id="edges"></g><g id="nodes"></g></svg>
+  </section>
+  <section class="view" id="v-sets">
+    <p>Each box is a set (a scheme). A term can sit in more than one: those show a number. A dashed outline means "proposed, needs your yes".</p>
+    <div class="controls"><input type="text" id="filter" placeholder="Filter terms" aria-label="Filter terms"></div>
+    <div class="legend" id="legend2"></div>
+    <div class="sets" id="sets"></div>
+  </section>
+  <section class="view" id="v-tree">
+    <p>The topic tree from <code>books.txt</code>. One home per item: a file lives in one of these folders, and everything else it is about goes in tags.</p>
+    <div class="tree" id="tree"></div>
+  </section>
+  <section class="view" id="v-try">
+    <p>Type a tag and say where it came from. This shows how a tool would read it, using the rules in the vocabulary file.</p>
+    <div class="controls">
+      <label>Tag <input type="text" id="tagIn" value="troiscrayons"></label>
+      <label>from <select id="srcIn"></select></label>
+    </div>
+    <div class="controls" id="examples"></div>
+    <div id="result" aria-live="polite"></div>
+  </section>
+  <section class="view" id="v-sources">
+    <h2>Whose words are these?</h2>
+    <p>Tags are filed by where they came from and never merged. Only <code>mine</code> is shown as tags in other systems.</p>
+    <div id="srcTable"></div>
+    <h2>Entities</h2>
+    <p>Real people, places and projects. Written with a prefix. Not concepts.</p>
+    <div id="entTable"></div>
+    <h2>Mappings</h2>
+    <p>How to read a tag from another source without rewriting it. Only "exact" and "close" count as a match.</p>
+    <div id="mapTable"></div>
+    <h2>Identifier schemes</h2>
+    <div id="idTable"></div>
+  </section>
+  <section class="view" id="v-open">
+    <h2>Things waiting for your decision</h2>
+    <p>Every note in the vocabulary file that starts with OPEN, every proposed concept, and every tag left unmapped on purpose.</p>
+    <div id="openList"></div>
+  </section>
+</div>
+<aside id="detail" aria-live="polite"><h2>Pick a term</h2><p>Its details appear here.</p></aside>
+</main>
+<script id="vocab-data" type="application/json">
+/*VOCAB_JSON*/
+</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("vocab-data").textContent);
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const GROUPS = [
+  ["Formal quality", ["formal"]],
+  ["Making", ["technique", "approach"]],
+  ["Materials", ["material"]],
+  ["Subjects and work types", ["anatomy", "subject", "genre", "work-type"]],
+  ["Filing and teaching", ["topic", "theme", "pedagogy", "workflow"]]
+];
+const groupOf = (kind) => { const i = GROUPS.findIndex((g) => g[1].includes(kind)); return i < 0 ? 4 : i; };
+const colour = (c) => "var(--g" + (groupOf(c.kind) + 1) + ")";
+const C = {}; D.concepts.forEach((c) => { C[c.id] = c; });
+const label = (c) => c.label || c.id;
+const canon = (t) => String(t).trim().toLowerCase().replace(/[\s_]+/g, "-");
+const ALIAS = {};
+D.concepts.forEach((c) => { ALIAS[c.id] = c.id; (c.aliases || []).forEach((a) => { ALIAS[String(a).toLowerCase()] = c.id; ALIAS[canon(a)] = c.id; }); });
+const narrower = {}; const relatedBoth = {};
+D.concepts.forEach((c) => {
+  (c.broader || []).forEach((b) => { (narrower[b] = narrower[b] || []).push(c.id); });
+  (c.related || []).forEach((r) => { (relatedBoth[c.id] = relatedBoth[c.id] || new Set()).add(r); (relatedBoth[r] = relatedBoth[r] || new Set()).add(c.id); });
+});
+const kindLabel = {}; D.kinds.forEach((k) => { kindLabel[k.id] = k.label; });
+const schemeById = {}; D.schemes.forEach((s) => { schemeById[s.id] = s; });
+const srcById = {}; D.tag_sources.forEach((s) => { srcById[s.id] = s; });
+let selected = null;
+$("#stamp").textContent = "Data: " + D.schema + ", updated " + D.updated + ". " + D.concepts.length + " concepts.";
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === "v-" + b.dataset.view));
+}));
+const legendHtml = GROUPS.map((g, i) => `<span><span class="sw" style="color:var(--g${i + 1});background:var(--g${i + 1})"></span>${esc(g[0])}</span>`).join("") +
+  `<span><span class="sw" style="color:var(--ink2);background:transparent"></span>hollow or dashed = proposed</span>`;
+$("#legend").innerHTML = legendHtml; $("#legend2").innerHTML = legendHtml;
+
+/* ---------- detail panel ---------- */
+const cbtn = (id) => C[id] ? `<button data-c="${esc(id)}">${esc(label(C[id]))}</button>` : `<code>${esc(id)}</code>`;
+const renders = (tag) => [["Record", tag], ["Eagle", tag], ["Pinboard", tag], ["Obsidian", tag.replace(":", "/")], ["Are.na", "block metadata tags: " + tag]];
+function lookedUp(c, key) { return !(key in c) ? "not looked up yet" : (c[key] === null ? "looked up: none" : c[key]); }
+function showConcept(id) {
+  const c = C[id]; if (!c) return; selected = id;
+  const rel = [...(relatedBoth[id] || [])];
+  const maps = D.mappings.filter((m) => m.to === id);
+  let h = `<h2><span class="sw" style="color:${colour(c)};background:${c.status === "proposed" ? "transparent" : colour(c)}"></span>${esc(label(c))}</h2>`;
+  h += `<p class="sub">${esc(kindLabel[c.kind] || c.kind)}${c.category ? " (" + esc(c.category) + ")" : ""} · ${esc(GROUPS[groupOf(c.kind)][0])} · <strong>${esc(c.status)}</strong></p><dl>`;
+  if (c.definition) h += `<dt>Meaning</dt><dd>${esc(c.definition)}</dd>`;
+  if (c.note) h += `<dt>Note</dt><dd>${esc(c.note)}</dd>`;
+  h += `<dt>Id (what you type)</dt><dd><code>${esc(c.id)}</code></dd>`;
+  if (c.path) h += `<dt>Folder</dt><dd><code>${esc(c.path)}</code></dd>`;
+  if (c.aliases) h += `<dt>Also answers to</dt><dd>${c.aliases.map((a) => `<code>${esc(a)}</code>`).join(" ")}</dd>`;
+  if (c.schemes) h += `<dt>In sets</dt><dd>${c.schemes.map((s) => esc((schemeById[s] || {}).label || s)).join(", ")}</dd>`;
+  if (c.broader) h += `<dt>Broader</dt><dd class="chips">${c.broader.map(cbtn).join("")}</dd>`;
+  if (narrower[id]) h += `<dt>Narrower</dt><dd class="chips">${narrower[id].map(cbtn).join("")}</dd>`;
+  if (rel.length) h += `<dt>Related</dt><dd class="chips">${rel.map(cbtn).join("")}</dd>`;
+  if (maps.length) h += `<dt>Other people's tags read as this</dt><dd>${maps.map((m) => `<code>${esc(m.tag)}</code> from ${esc(m.source)} (${esc(m.relation)})`).join("<br>")}</dd>`;
+  h += `<dt>Getty AAT</dt><dd>${c.aat ? `<a href="http://vocab.getty.edu/aat/${esc(c.aat)}">${esc(c.aat)}</a> ${esc(c.aat_label || "")}<br><span class="sub">checked by: ${esc(c.aat_check || "not stated")}</span>` : esc(lookedUp(c, "aat"))}${c.aat_note ? `<br><span class="sub">${esc(c.aat_note)}</span>` : ""}</dd><dt>Wikidata</dt><dd>${c.wikidata ? `<a href="https://www.wikidata.org/wiki/${esc(c.wikidata)}">${esc(c.wikidata)}</a>` : esc(lookedUp(c, "wikidata"))}</dd>`;
+  if (c.schema_org) h += `<dt>schema.org type</dt><dd>${esc(c.schema_org)}</dd>`;
+  h += `<dt>Came from</dt><dd>${esc(c.origin)}</dd></dl>`;
+  $("#detail").innerHTML = h;
+  document.querySelectorAll(".chip").forEach((el) => el.classList.toggle("sel", el.dataset.c === id));
+  paintSelection();
+}
+document.addEventListener("click", (e) => { const t = e.target.closest("[data-c]"); if (t) showConcept(t.dataset.c); });
+
+/* ---------- web view ---------- */
+const W = 1200, H = 800; const svg = $("#svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const pos = {}; let vis = []; let edges = [];
+const chosen = new Set(["elements-of-art", "principles-of-design"]);
+$("#webSchemes").innerHTML = D.schemes.map((s) => `<label class="chk"><input type="checkbox" data-s="${esc(s.id)}" ${chosen.has(s.id) ? "checked" : ""}> ${esc(s.label)}</label>`).join("") +
+  `<label class="chk"><input type="checkbox" data-s="__none"> Not in any set</label>`;
+$("#webSchemes").addEventListener("change", (e) => { const s = e.target.dataset.s; if (!s) return; e.target.checked ? chosen.add(s) : chosen.delete(s); buildWeb(true); });
+$("#neigh").addEventListener("change", () => buildWeb(true));
+$("#relayout").addEventListener("click", () => { vis.forEach((id) => { delete pos[id]; }); buildWeb(true); });
+function inChosen(c) { return (c.schemes || []).some((s) => chosen.has(s)) || (!c.schemes && chosen.has("__none")); }
+function buildWeb(sim) {
+  const core = D.concepts.filter(inChosen).map((c) => c.id); const set = new Set(core);
+  if ($("#neigh").checked) core.forEach((id) => { (C[id].broader || []).forEach((b) => set.add(b)); (narrower[id] || []).forEach((n) => set.add(n)); (relatedBoth[id] || []).forEach((r) => set.add(r)); });
+  vis = [...set].filter((id) => C[id]); edges = []; const seen = new Set();
+  vis.forEach((id) => {
+    (C[id].broader || []).forEach((b) => { if (set.has(b)) edges.push([id, b, "b"]); });
+    (relatedBoth[id] || []).forEach((r) => { const k = [id, r].sort().join("|"); if (set.has(r) && !seen.has(k)) { seen.add(k); edges.push([id, r, "r"]); } });
+  });
+  vis.forEach((id, i) => { if (!pos[id]) { const a = i * 2.399963, r = 40 + 18 * Math.sqrt(i); pos[id] = {x: W / 2 + r * Math.cos(a), y: H / 2 + r * Math.sin(a) * 0.7}; } });
+  if (sim) simulate(400);
+  draw();
+}
+function simulate(steps) {
+  const n = vis.length; if (!n) return; const k = Math.max(42, Math.min(120, Math.sqrt(W * H / n) * 0.62));
+  for (let it = 0; it < steps; it++) {
+    const t = 40 * (1 - it / steps) + 1; const f = {}; vis.forEach((id) => { f[id] = {x: 0, y: 0}; });
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const a = pos[vis[i]], b = pos[vis[j]]; let dx = (a.x - b.x) * 0.55, dy = a.y - b.y; let d = Math.sqrt(dx * dx + dy * dy) || 0.01; if (d > 3.5 * k) continue; const r = k * k / d;
+      f[vis[i]].x += dx / d * r; f[vis[i]].y += dy / d * r; f[vis[j]].x -= dx / d * r; f[vis[j]].y -= dy / d * r;
+    }
+    edges.forEach(([s, o, ty]) => { const a = pos[s], b = pos[o]; const dx = a.x - b.x, dy = a.y - b.y; const d = Math.sqrt(dx * dx + dy * dy) || 0.01; const r = d * d / (k * 1.6) * (ty === "b" ? 1 : 0.5);
+      f[s].x -= dx / d * r; f[s].y -= dy / d * r; f[o].x += dx / d * r; f[o].y += dy / d * r; });
+    vis.forEach((id) => { const p = pos[id]; if (p.pin) return; f[id].x += (W / 2 - 70 - p.x) * 0.1; f[id].y += (H / 2 - p.y) * 0.16;
+      const m = Math.sqrt(f[id].x * f[id].x + f[id].y * f[id].y) || 0.01; p.x += f[id].x / m * Math.min(m, t); p.y += f[id].y / m * Math.min(m, t);
+      p.x = Math.max(20, Math.min(W - 170, p.x)); p.y = Math.max(20, Math.min(H - 20, p.y)); });
+  }
+}
+function draw() {
+  $("#edges").innerHTML = edges.map(([s, o, ty], i) => `<line class="edge ${ty === "r" ? "rel" : ""}" data-e="${i}" ${ty === "b" ? "marker-end=\"url(#arr)\"" : ""}/>`).join("");
+  $("#nodes").innerHTML = vis.map((id) => { const c = C[id]; const col = colour(c);
+    return `<g class="node" data-n="${esc(id)}"><rect x="-7" y="-7" width="14" height="14" stroke="${col}" stroke-width="3" fill="${c.status === "proposed" ? "var(--panel)" : col}"/><text x="13" y="5" data-c="${esc(id)}">${esc(label(c))}</text><title>${esc(label(c))}: ${esc(kindLabel[c.kind] || c.kind)}</title></g>`; }).join("");
+  place(); paintSelection();
+}
+function place() {
+  document.querySelectorAll("#nodes .node").forEach((g) => { const p = pos[g.dataset.n]; g.setAttribute("transform", `translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`); });
+  document.querySelectorAll("#edges line").forEach((l) => { const [s, o] = edges[+l.dataset.e]; const a = pos[s], b = pos[o]; const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+    l.setAttribute("x1", a.x + dx / d * 10); l.setAttribute("y1", a.y + dy / d * 10); l.setAttribute("x2", b.x - dx / d * 12); l.setAttribute("y2", b.y - dy / d * 12); });
+}
+function paintSelection() {
+  const near = new Set(); if (selected) { near.add(selected); edges.forEach(([s, o]) => { if (s === selected) near.add(o); if (o === selected) near.add(s); }); }
+  const on = selected && vis.includes(selected);
+  document.querySelectorAll("#nodes .node").forEach((g) => { g.classList.toggle("sel", g.dataset.n === selected); g.classList.toggle("dim", !!on && !near.has(g.dataset.n)); });
+  document.querySelectorAll("#edges line").forEach((l) => { const [s, o] = edges[+l.dataset.e]; l.classList.toggle("dim", !!on && s !== selected && o !== selected); });
+}
+let drag = null;
+function svgPoint(e) { const r = svg.getBoundingClientRect(); const sc = Math.min(r.width / W, r.height / H); const ox = (r.width - W * sc) / 2, oy = (r.height - H * sc) / 2; return {x: (e.clientX - r.left - ox) / sc, y: (e.clientY - r.top - oy) / sc}; }
+svg.addEventListener("pointerdown", (e) => { const g = e.target.closest(".node"); if (!g) return; drag = g.dataset.n; svg.setPointerCapture(e.pointerId); });
+svg.addEventListener("pointermove", (e) => { if (!drag) return; const p = svgPoint(e); pos[drag].x = p.x; pos[drag].y = p.y; pos[drag].pin = true; place(); });
+svg.addEventListener("pointerup", () => { if (drag) showConcept(drag); drag = null; });
+
+/* ---------- sets view ---------- */
+function chip(c) { return `<button class="chip ${c.status === "proposed" ? "proposed" : ""}" data-c="${esc(c.id)}" style="border-left-color:${colour(c)}">${esc(label(c))}${(c.schemes || []).length > 1 ? " ×" + c.schemes.length : ""}</button>`; }
+function buildSets() {
+  const q = canon($("#filter").value || ""); const hit = (c) => !q || canon(label(c)).includes(q) || c.id.includes(q) || (c.aliases || []).some((a) => canon(a).includes(q));
+  let h = "";
+  D.schemes.forEach((s) => { if (s.id === "topics") return; const m = D.concepts.filter((c) => (c.schemes || []).includes(s.id) && hit(c)); if (!m.length && q) return;
+    h += `<div class="set"><h3>${esc(s.label)} (${m.length})</h3><p class="sub">${s.strict ? "Closed list." : "Open list."}${s.applies_to ? " For " + esc(s.applies_to.join(", ")) + " notes only." : ""} ${esc(s.note || "")}</p><div class="chips">${m.map(chip).join("")}</div></div>`; });
+  const loose = D.concepts.filter((c) => !c.schemes && hit(c)); const byKind = {};
+  loose.forEach((c) => { (byKind[c.kind] = byKind[c.kind] || []).push(c); });
+  Object.keys(byKind).forEach((k) => { h += `<div class="set"><h3>No set: ${esc(kindLabel[k] || k)} (${byKind[k].length})</h3><p class="sub">Concepts that are not in a named set.</p><div class="chips">${byKind[k].map(chip).join("")}</div></div>`; });
+  $("#sets").innerHTML = h;
+}
+$("#filter").addEventListener("input", buildSets);
+
+/* ---------- tree view ---------- */
+function buildTree() {
+  const t = D.concepts.filter((c) => (c.schemes || []).includes("topics")); const kids = {}; const roots = [];
+  t.forEach((c) => { if (c.broader && c.broader.length) (kids[c.broader[0]] = kids[c.broader[0]] || []).push(c); else roots.push(c); });
+  const ul = (list) => "<ul>" + list.map((c) => `<li><button class="chip" data-c="${esc(c.id)}" style="border-left-color:${colour(c)}">${esc(label(c))}</button>${kids[c.id] ? ul(kids[c.id]) : ""}</li>`).join("") + "</ul>";
+  $("#tree").innerHTML = ul(roots);
+}
+
+/* ---------- try a tag ---------- */
+$("#srcIn").innerHTML = D.tag_sources.map((s) => `<option value="${esc(s.id)}">${esc(s.id)}: ${esc(s.label)}</option>`).join("");
+const EX = [["troiscrayons", "eagle"], ["Coloured Pencil", "mine"], ["llm", "pinboard"], ["generative", "pinboard"], ["paint-markmaking", "eagle"], ["artist:schiele", "eagle"], ["kennedyspacecenter", "flickr"], ["IFTTT", "pinboard"], ["class:primavera", "mine"], ["tbwp", "eagle"]];
+$("#examples").innerHTML = "Try: " + EX.map((e) => `<button data-ex="${esc(e[0])}|${esc(e[1])}">${esc(e[0])} (${esc(e[1])})</button>`).join("");
+$("#examples").addEventListener("click", (e) => { const b = e.target.closest("[data-ex]"); if (!b) return; const [t, s] = b.dataset.ex.split("|"); $("#tagIn").value = t; $("#srcIn").value = s; tryTag(); });
+function entityOf(tag) {
+  const t = tag.trim(); if (t.startsWith("@")) return {prefix: "person or org", value: canon(t.slice(1)), note: "The @ shorthand. A tool must ask whether this is a person or an organisation."};
+  const i = t.indexOf(":"); if (i < 1 || t.includes("=")) return null; const p = t.slice(0, i).toLowerCase() + ":";
+  const ep = D.entity_prefixes.find((x) => x.id + ":" === p || (x.accepts || []).includes(p)); return ep ? {prefix: ep.id, value: canon(t.slice(i + 1)), label: ep.label, alias: ep.id + ":" !== p ? p : null} : null;
+}
+function tryTag() {
+  const raw = $("#tagIn").value; const sid = $("#srcIn").value; const src = srcById[sid]; if (!raw.trim()) { $("#result").innerHTML = ""; return; }
+  let h = `<h3>${esc(raw)} <span class="sub">from ${esc(sid)}</span></h3>`;
+  h += `<p>Whose words: <strong>${esc(src.author)}</strong>. Trust: ${esc(src.trust)}. Stored in <code>tag_sets.${esc(sid)}</code> ${src.form === "canonical" ? "in canonical form" : "exactly as given"}.</p>`;
+  const m = D.mappings.find((x) => x.source === sid && x.tag === raw.trim());
+  const um = (D.unmapped || []).find((x) => x.source === sid && x.tag === raw.trim());
+  const ent = entityOf(raw); let target = null; let counts = false;
+  if (m) { counts = m.relation === "exact" || m.relation === "close"; target = m.to;
+    h += `<p>A mapping exists: read as <strong>${C[m.to] ? cbtn(m.to) : "<code>" + esc(m.to) + "</code>"}</strong>, relation <strong>${esc(m.relation)}</strong>. ${counts ? "<span class=\"yes\">This counts as a match.</span>" : "<span class=\"no\">This does not count as a match.</span> The concept is only " + esc(m.relation) + "."}${m.note ? " Note: " + esc(m.note) + "." : ""}</p>`;
+  } else if (um) { h += `<p><span class="no">Left unmapped on purpose.</span> ${esc(um.note)}.</p>`;
+  } else if (ent) { target = ent.prefix + ":" + ent.value; counts = src.author === "me";
+    h += `<p>This is an <strong>entity</strong>, not a concept: ${esc(ent.label || ent.prefix)}. Canonical form <code>${esc(target)}</code>.${ent.alias ? " <code>" + esc(ent.alias) + "</code> is accepted and rewritten." : ""}${ent.note ? " " + esc(ent.note) : ""}</p>`;
+  } else if (src.author === "me") { const id = ALIAS[raw.trim().toLowerCase()] || ALIAS[canon(raw)];
+    if (id) { target = id; counts = true; h += `<p><span class="yes">Matches the concept ${cbtn(id)}</span>${id !== canon(raw) ? " through an alias" : ""}. Canonical tag: <code>${esc(id)}</code>.</p>`; }
+    else { target = canon(raw); h += `<p>No concept matches. That is fine: it stays a free tag, <code>${esc(canon(raw))}</code>. Add a concept to the vocabulary file if it earns one.</p>`; }
+  } else { const id = ALIAS[raw.trim().toLowerCase()] || ALIAS[canon(raw)];
+    h += `<p><span class="no">Not interpreted.</span> These are not your words, and there is no mapping for this tag. It is kept as given and used for search only.${id ? " It happens to look like the concept " + cbtn(id) + ". Add a mapping if they really mean the same." : ""}</p>`; }
+  h += `<p>Becoming one of your tags: ${src.promote ? "<strong>" + esc(src.promote) + "</strong>" : "it already is"}${src.promote === "review" ? " (only after you approve it)" : src.promote === "exact" ? " (automatic, on an exact concept match only)" : src.promote === "never" ? " (stays where it is)" : ""}.</p>`;
+  if (target && (sid === "mine" || counts)) h += `<table><tr><th>System</th><th>How <code>${esc(target)}</code> appears</th></tr>${renders(target).map((r) => `<tr><td>${esc(r[0])}</td><td><code>${esc(r[1])}</code></td></tr>`).join("")}</table>`;
+  $("#result").innerHTML = h;
+}
+$("#tagIn").addEventListener("input", tryTag); $("#srcIn").addEventListener("change", tryTag);
+
+/* ---------- sources and tables ---------- */
+function table(cols, rows) { return "<table><tr>" + cols.map((c) => `<th>${esc(c)}</th>`).join("") + "</tr>" + rows.map((r) => "<tr>" + r.map((c) => `<td>${c}</td>`).join("") + "</tr>").join("") + "</table>"; }
+function buildTables() {
+  let h = ""; [["me", "Mine"], ["others", "Other people's"], ["machine", "Machine-made"]].forEach(([a, t]) => {
+    h += `<h3>${t}</h3>` + table(["Set", "What it holds", "Trust", "Shown as tags in", "Can become mine"], D.tag_sources.filter((s) => s.author === a).map((s) =>
+      [`<code>${esc(s.id)}</code>`, esc(s.label) + (s.note ? `<br><span class="sub">${esc(s.note)}</span>` : ""), esc(s.trust), esc((s.show_as_tags_in || []).join(", ") || "nowhere"), esc(s.promote || "already is")])); });
+  $("#srcTable").innerHTML = h;
+  $("#entTable").innerHTML = table(["Prefix", "Means", "Example", "Also accepts", "Note"], D.entity_prefixes.map((e) => [`<code>${esc(e.id)}:</code>`, esc(e.label), `<code>${esc(e.example)}</code>`, esc((e.accepts || []).join(" ")), esc(e.note || "")]));
+  $("#mapTable").innerHTML = table(["From", "Tag", "Read as", "Relation", "Counts?", "Note"], D.mappings.map((m) => [esc(m.source), `<code>${esc(m.tag)}</code>`, C[m.to] ? cbtn(m.to) : `<code>${esc(m.to)}</code>`, esc(m.relation), (m.relation === "exact" || m.relation === "close") ? "yes" : "<span class=\"no\">no</span>", esc(m.note || "")]));
+  $("#idTable").innerHTML = table(["Scheme", "What", "For", "Address pattern"], D.identifier_schemes.map((s) => [`<code>${esc(s.id)}</code>`, esc(s.label) + (s.note ? `<br><span class="sub">${esc(s.note)}</span>` : ""), esc((s["for"] || []).join(", ")), s.url ? `<code>${esc(s.url)}</code>` : ""]));
+  let o = "<h3>Open questions in the notes</h3><ul>";
+  D.concepts.filter((c) => /^OPEN/.test(c.note || "")).forEach((c) => { o += `<li>${cbtn(c.id)} ${esc(c.note)}</li>`; });
+  D.entity_prefixes.filter((e) => /OPEN/.test(e.note || "")).forEach((e) => { o += `<li><code>${esc(e.id)}:</code> ${esc(e.note)}</li>`; });
+  D.tag_sources.filter((s) => /Needs Kim/.test(s.note || "")).forEach((s) => { o += `<li><code>${esc(s.id)}</code> ${esc(s.note)}</li>`; });
+  o += "</ul><h3>Proposed concepts (need your yes)</h3><div class=\"chips\">" + D.concepts.filter((c) => c.status === "proposed").map(chip).join("") + "</div>";
+  o += "<h3>Tags left unmapped on purpose</h3>" + table(["From", "Tag", "Why"], (D.unmapped || []).map((u) => [esc(u.source), `<code>${esc(u.tag)}</code>`, esc(u.note)]));
+  o += "<h3>Mappings with a note to check</h3>" + table(["From", "Tag", "Read as", "Note"], D.mappings.filter((m) => m.note).map((m) => [esc(m.source), `<code>${esc(m.tag)}</code>`, `<code>${esc(m.to)}</code>`, esc(m.note)]));
+  $("#openList").innerHTML = o;
+}
+buildWeb(true); buildSets(); buildTree(); buildTables(); tryTag(); showConcept("line");
+</script>
+</body>
+</html>

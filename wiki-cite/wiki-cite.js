@@ -20,6 +20,54 @@
 
   // ---- helpers ----
   const strip = s => s == null ? '' : String(s).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  // Strip trailing QuickStatements metadata like "title QS:P1476,..." or "medium QS:P186,..."
+  const cleanQS = s => {
+    if (!s) return '';
+    return strip(s).replace(/\s*\b(title|label|description|creator|medium|dimensions|date|inception|collection|location|dim|art|aut|source|institution|credit)\b\s*QS:[\s\S]*$/i, '').trim();
+  };
+  // DOM fallback helpers — the bookmarklet runs in the page, so Commons' Information
+  // template cells are readable. innerText respects visibility, so hidden QS spans
+  // and translation divs are skipped.
+  const domCell = (...ids) => {
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const td = el.nextElementSibling;
+      if (td && td.tagName === 'TD') return td;
+    }
+    return null;
+  };
+  const domText = (...ids) => {
+    const td = domCell(...ids);
+    return td ? td.innerText.trim().split('\n')[0].trim() : '';
+  };
+  const domArtist = () => {
+    const td = domCell('fileinfotpl_art_artist', 'fileinfotpl_art_painter', 'fileinfotpl_aut');
+    if (!td) return { name: '', url: '' };
+    const fn = td.querySelector('.fn');
+    if (fn && fn.innerText.trim()) {
+      const a = fn.querySelector('a') || td.querySelector('a');
+      return { name: fn.innerText.trim(), url: (a && a.href) || '' };
+    }
+    const a = td.querySelector('a');
+    if (a && a.innerText.trim()) return { name: a.innerText.trim(), url: a.href || '' };
+    return { name: td.innerText.trim().split('\n')[0].trim(), url: '' };
+  };
+  const domTitle = () => {
+    const td = domCell('fileinfotpl_art_title');
+    if (!td) return '';
+    const en = td.querySelector('[lang="en"]');
+    if (en && en.innerText.trim()) return en.innerText.trim();
+    const any = td.querySelector('[lang]');
+    if (any && any.innerText.trim()) return any.innerText.trim();
+    return td.innerText.trim().split('\n')[0].trim();
+  };
+  const domInstitution = () => {
+    const td = domCell('fileinfotpl_art_institution');
+    if (!td) return { name: '', url: '' };
+    const a = td.querySelector('a');
+    return { name: td.innerText.trim().split('\n')[0].trim(), url: (a && a.href) || '' };
+  };
   const esc = s => (s == null ? '' : String(s))
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -210,15 +258,28 @@
     }).filter(Boolean);
 
     // ---- 3. assemble canonical fields ----
+    // Priority order: Wikidata (API) → DOM (page itself) → cleaned extmetadata → filename.
+    // DOM fills the gap when SDC doesn't link the file to its artwork item.
+    const domArt = domArtist();
+    const domInst = domInstitution();
+
     const creators = claimStrings('P170').length ? claimStrings('P170') : claimStrings('P50');
-    const creator = creators.length ? creators.map(c => c.label).join(', ') : (strip(g('Artist')) || 'Unknown');
-    const creatorUrl = creators[0] && creators[0].qid ? qUrl(creators[0].qid) : '';
+    const creator = creators.length
+      ? creators.map(c => c.label).join(', ')
+      : (domArt.name || cleanQS(g('Artist')) || 'Unknown');
+    const creatorUrl = (creators[0] && creators[0].qid ? qUrl(creators[0].qid) : '') || domArt.url || '';
 
     const workLabel = (workItem && workItem.labels && workItem.labels.en && workItem.labels.en.value) || '';
-    const workTitle = workLabel || strip(g('ObjectName')) || strip(g('ImageDescription')) || fileTitle.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '');
+    const workTitle = workLabel
+      || domTitle()
+      || cleanQS(g('ObjectName'))
+      || cleanQS(g('ImageDescription'))
+      || fileTitle.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '');
 
     const dateVals = claimStrings('P571');
-    let date = dateVals.length ? dateVals.map(d => d.label).join(' – ') : strip(g('DateTimeOriginal'));
+    let date = dateVals.length
+      ? dateVals.map(d => d.label).join(' – ')
+      : (domText('fileinfotpl_art_date', 'fileinfotpl_date') || cleanQS(g('DateTimeOriginal')));
     // handle circa: look for qualifier P1480 Q5727902
     if (workClaims.P571 && workClaims.P571[0] && workClaims.P571[0].qualifiers && workClaims.P571[0].qualifiers.P1480) {
       const q = workClaims.P571[0].qualifiers.P1480[0];
@@ -234,20 +295,25 @@
       }
     }
 
-    const medium = claimStrings('P186').map(c => c.label).join(', ');
+    const medium = claimStrings('P186').map(c => c.label).join(', ')
+      || cleanQS(domText('fileinfotpl_art_medium'));
     const heights = claimStrings('P2048');
     const widths = claimStrings('P2049');
     const h = heights[0] && heights[0].amount;
     const w = widths[0] && widths[0].amount;
     const hUnit = heights[0] && heights[0].unit || 'cm';
-    const dimensions = (h && w) ? `${h} × ${w} ${hUnit}` : '';
+    const dimensions = (h && w)
+      ? `${h} × ${w} ${hUnit}`
+      : cleanQS(domText('fileinfotpl_art_dimensions'));
 
     const institutions = claimStrings('P195');
-    const institution = institutions[0] ? institutions[0].label : '';
-    const institutionUrl = institutions[0] && institutions[0].qid ? qUrl(institutions[0].qid) : '';
+    const institution = institutions[0] ? institutions[0].label : (domInst.name || '');
+    const institutionUrl = (institutions[0] && institutions[0].qid ? qUrl(institutions[0].qid) : '') || domInst.url || '';
     const locations = claimStrings('P276');
     const locationStr = locations[0] ? locations[0].label : '';
-    const inventory = (workClaims.P217 && workClaims.P217[0] && workClaims.P217[0].mainsnak.datavalue && workClaims.P217[0].mainsnak.datavalue.value) || '';
+    const inventory = (workClaims.P217 && workClaims.P217[0] && workClaims.P217[0].mainsnak.datavalue && workClaims.P217[0].mainsnak.datavalue.value)
+      || domText('fileinfotpl_art_accession')
+      || '';
 
     // Canonical collection page URL (institution's own page for the work)
     //   P973 "described at URL" or P2634 varies; many artworks have P973 pointing to the museum page
@@ -328,17 +394,16 @@
     ].filter(Boolean).join(' - ');
 
     // Kim's smush
-    const medBits = [];
-    if (medium) medBits.push(`[${medium}]`);
-    if (dimensions) medBits.push(`[${dimensions}]`);
+    const medDim = [medium, dimensions].filter(Boolean).join(', ');
     const orgBits = [institution, locationStr].filter(Boolean).join(', ');
     const smush =
       `${creator} (${date || 'n.d.'}) _${workTitle}_.`
-      + (medBits.length ? ' ' + medBits.join('') + '.' : '')
+      + (medDim ? ` [${medDim}].` : '')
       + (orgBits ? ` ${orgBits}.` : '')
       + ` Available at [${permalink}](${permalink})`
       + ` (Accessed ${accessed}).`
-      + (license ? ` Licensed under ${licenseUrl ? `[${license}](${licenseUrl})` : license}.` : '')
+      + (license ? ` ${licenseUrl ? `[${license}](${licenseUrl})` : license}.` : '')
+      + (imageUrl ? `\n\n![${workTitle}|400](${imageUrl})` : '')
       + (collectionPageUrl ? `\n\nCollection page: [${institution || 'canonical'}](${collectionPageUrl})` : '');
 
     // Eagle plain

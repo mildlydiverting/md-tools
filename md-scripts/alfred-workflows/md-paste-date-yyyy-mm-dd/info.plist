@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.mildlydiverting.date-paster</string>
+	<key>connections</key>
+	<dict>
+		<key>E6ED7926-475E-454E-87D9-5150DB92C1F3</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>3E5DA25E-1338-4C2E-975C-EF41C43861CD</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Kim Plowright</string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>md Paste Date yyyy-mm-dd</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>keyword</key>
+				<string>date</string>
+				<key>subtext</key>
+				<string>yyyy-mm-dd</string>
+				<key>text</key>
+				<string>Paste the date</string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>E6ED7926-475E-454E-87D9-5150DB92C1F3</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<true/>
+				<key>clipboardtext</key>
+				<string>{isodate:yyyy-MM-dd}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>3E5DA25E-1338-4C2E-975C-EF41C43861CD</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>3E5DA25E-1338-4C2E-975C-EF41C43861CD</key>
+		<dict>
+			<key>xpos</key>
+			<real>225</real>
+			<key>ypos</key>
+			<real>90</real>
+		</dict>
+		<key>E6ED7926-475E-454E-87D9-5150DB92C1F3</key>
+		<dict>
+			<key>note</key>
+			<string>Type your keyword into Alfred to trigger this workflow.</string>
+			<key>xpos</key>
+			<real>65</real>
+			<key>ypos</key>
+			<real>90</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>webaddress</key>
+	<string>https://mildlydiverting.com</string>
+</dict>
+</plist>

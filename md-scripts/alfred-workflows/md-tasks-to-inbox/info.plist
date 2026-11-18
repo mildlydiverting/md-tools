@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.mildlydiverting.tasks-to-inbox</string>
+	<key>connections</key>
+	<dict>
+		<key>0227EAF6-DEE1-4D9B-BE06-73748FDAB3B0</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>7CB1BF29-067D-4B46-AED9-6DDEF172B413</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>530A6295-D787-44FE-BAE5-D00BDAD2CA9F</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>0227EAF6-DEE1-4D9B-BE06-73748FDAB3B0</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string>⌘↩ Create note</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>FFFB1CA1-53C0-47CA-B66D-5156BD1F8A56</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>0227EAF6-DEE1-4D9B-BE06-73748FDAB3B0</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>530A6295-D787-44FE-BAE5-D00BDAD2CA9F</string>
+				<key>modifiers</key>
+				<integer>524288</integer>
+				<key>modifiersubtext</key>
+				<string>Open big text entry box</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Kim Plowright</string>
+	<key>description</key>
+	<string>Sends pasted text to a taskpaper file</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>md-Tasks to Inbox</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>#!/usr/bin/env python3
+"""
+inbox.py — insert one or more entries into _INBOX: in a TaskPaper file.
+
+Accepts text as a positional argument or via stdin.
+
+Input handling:
+  - Lines already formatted (start with tab + dash): inserted as-is
+  - Raw text lines: wrapped as a bare task with @date
+  - Blank lines: skipped
+  - If heading not found: prepended to top of file
+
+Usage (terminal):
+    python3 inbox.py "Buy more charcoal"
+    echo "some text" | python3 inbox.py
+
+Usage (Alfred — zsh, pipe via stdin):
+    query=$1
+    echo "$1" | python3 /path/to/inbox.py
+
+File path: hardcoded default is ~/Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper or pass --file to override. (also passed from Alfred var:targetfile)
+
+Inbox heading: defaults to _INBOX:, or set via environment variable 'inbox'.
+
+Alfred Variables are
+{var:targetfile}
+{var:inbox}
+
+"""
+
+import argparse
+import os
+import sys
+from datetime import date
+from pathlib import Path
+
+DEFAULT_FILE = Path(os.environ.get("targetfile", str(Path.home() / "Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper")))
+INBOX_HEADING = os.environ.get("inbox", "_INBOX:")
+
+
+def format_raw(text: str) -&gt; str:
+    today = date.today().isoformat()
+    return f"\t- {text.strip()} @date({today})"
+
+
+def prepare_lines(raw_input: str) -&gt; list[str]:
+    lines = []
+    for line in raw_input.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith("\t-") or line.startswith("\t\t"):
+            lines.append(line)
+        else:
+            lines.append(format_raw(line))
+    return lines
+
+
+def insert_into_inbox(filepath: Path, entries: list[str]) -&gt; None:
+    if not filepath.exists():
+        sys.exit(f"File not found: {filepath}")
+
+    lines = filepath.read_text(encoding="utf-8").splitlines(keepends=True)
+
+    for i, line in enumerate(lines):
+        if line.strip() == INBOX_HEADING:
+            for j, entry in enumerate(entries):
+                lines.insert(i + 1 + j, entry.rstrip("\n") + "\n")
+            filepath.write_text("".join(lines), encoding="utf-8")
+            for entry in entries:
+                print(f"Added: {entry.strip()}")
+            return
+
+    # Heading not found — prepend it with entries beneath it
+    new_lines = [INBOX_HEADING + "\n"] + [e.rstrip("\n") + "\n" for e in entries]
+    filepath.write_text("".join(new_lines + lines), encoding="utf-8")
+    for entry in entries:
+        print(f"Added (new inbox created): {entry.strip()}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Append a task to a TaskPaper inbox.")
+    parser.add_argument("text", nargs="?", help="Task text (or pipe via stdin)")
+    parser.add_argument("--file", type=Path, default=DEFAULT_FILE, help="Path to TaskPaper file")
+    args = parser.parse_args()
+
+    if args.text:
+        raw = args.text
+    else:
+        raw = sys.stdin.read()
+
+    if not raw.strip():
+        sys.exit("No input provided.")
+
+    entries = prepare_lines(raw)
+    if not entries:
+        sys.exit("No valid entries found.")
+
+    insert_into_inbox(args.file, entries)
+
+
+if __name__ == "__main__":
+    main()</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>9</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>0227EAF6-DEE1-4D9B-BE06-73748FDAB3B0</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<true/>
+				<key>onlyshowifquerypopulated</key>
+				<false/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>Added to {var:tagetfile} {var:inbox}</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>7CB1BF29-067D-4B46-AED9-6DDEF172B413</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>keyword</key>
+				<string>{var:taskkeyword}</string>
+				<key>subtext</key>
+				<string>Add a task to todo.taskpaper inbox</string>
+				<key>text</key>
+				<string>TaskPaper Inbox</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>FFFB1CA1-53C0-47CA-B66D-5156BD1F8A56</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>behaviour</key>
+				<integer>1</integer>
+				<key>fontmode</key>
+				<integer>0</integer>
+				<key>fontsizing</key>
+				<integer>3</integer>
+				<key>footertext</key>
+				<string>⌘↩ Add Tasks to {var:inbox}</string>
+				<key>inputfile</key>
+				<string></string>
+				<key>inputtype</key>
+				<integer>0</integer>
+				<key>loadingtext</key>
+				<string></string>
+				<key>outputmode</key>
+				<integer>0</integer>
+				<key>scriptinput</key>
+				<integer>0</integer>
+				<key>spellchecking</key>
+				<integer>0</integer>
+				<key>stackview</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.userinterface.text</string>
+			<key>uid</key>
+			<string>530A6295-D787-44FE-BAE5-D00BDAD2CA9F</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict/>
+			<key>type</key>
+			<string>alfred.workflow.automation.task</string>
+			<key>uid</key>
+			<string>03857755-477C-446D-BADF-71736E950F8B</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>query=$1
+
+echo "$1" | python3 /Users/kimplowright/Development/md-tools/md-taskpaper-alfred/inbox.py</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>5</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>514BE5EC-3539-4A8A-B704-600B9248A489</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>#A really simple Taskpaper workflow
+
+1. Set your .taskpaper todo file location here
+2. Set a project header for your task inbox
+3. Summon with keyword (default is tdx)
+4. Type your todo
+5. Hit return, and it will be added to the top your inbox project in your TaskPaper file
+
+Set target .taskpaper file and inbox project: in this Workflow configuration.
+
+Need more space to type? Action the keyword with option-enter (⌥-⏎) to bring up a text entry box.
+
+## Input handling:
+
+- Lines already formatted (start with tab + dash): inserted as-is
+- Raw text lines: wrapped as a bare task with @date
+- Blank lines: skipped
+- If heading not found: prepended tasks to top of file
+
+### File path: 
+
+- default is ~/todo.taskpaper (in Alfred)
+- set in Alfred with {var:targetfile}
+- hardcoded default is ~/Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper 
+- pass --file to override. 
+
+### Inbox project heading: 
+
+- defaults to _INBOX:
+- set in Alfred by {var:inbox}
+
+## Technical details
+
+Alfred Variables are:
+
+    {var:targetfile}
+    {var:inbox}
+
+Usage (terminal):
+
+    python3 /path/to/inbox.py "Buy more charcoal"
+    echo "some text" | python3 inbox.py
+
+Usage (Alfred — zsh, pipe via stdin for an external script):
+
+    query=$1
+    echo "$1" | python3 /path/to/inbox.py</string>
+	<key>uidata</key>
+	<dict>
+		<key>0227EAF6-DEE1-4D9B-BE06-73748FDAB3B0</key>
+		<dict>
+			<key>xpos</key>
+			<real>360</real>
+			<key>ypos</key>
+			<real>40</real>
+		</dict>
+		<key>03857755-477C-446D-BADF-71736E950F8B</key>
+		<dict>
+			<key>xpos</key>
+			<real>120</real>
+			<key>ypos</key>
+			<real>350</real>
+		</dict>
+		<key>514BE5EC-3539-4A8A-B704-600B9248A489</key>
+		<dict>
+			<key>xpos</key>
+			<real>285</real>
+			<key>ypos</key>
+			<real>355</real>
+		</dict>
+		<key>530A6295-D787-44FE-BAE5-D00BDAD2CA9F</key>
+		<dict>
+			<key>xpos</key>
+			<real>190</real>
+			<key>ypos</key>
+			<real>210</real>
+		</dict>
+		<key>7CB1BF29-067D-4B46-AED9-6DDEF172B413</key>
+		<dict>
+			<key>xpos</key>
+			<real>515</real>
+			<key>ypos</key>
+			<real>40</real>
+		</dict>
+		<key>FFFB1CA1-53C0-47CA-B66D-5156BD1F8A56</key>
+		<dict>
+			<key>xpos</key>
+			<real>50</real>
+			<key>ypos</key>
+			<real>40</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>tdx</string>
+				<key>placeholder</key>
+				<string>tdx</string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Set the Keyword for this Workflow</string>
+			<key>label</key>
+			<string>Keyword</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>taskkeyword</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>~/todo.taskpaper</string>
+				<key>filtermode</key>
+				<integer>2</integer>
+				<key>placeholder</key>
+				<string>~/todo.taskpaper</string>
+				<key>required</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Select your .taskpaper file to add tasks. It will default to todo.taskpaper in either your ~/ home directory, or the top level of your iCloud drive TaskPaper folder if the script is used from the command line.</string>
+			<key>label</key>
+			<string>TaskPaper File</string>
+			<key>type</key>
+			<string>filepicker</string>
+			<key>variable</key>
+			<string>targetfile</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>_INBOX:</string>
+				<key>placeholder</key>
+				<string>_INBOX:</string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Set the project within your .taskpaper file. Tasks are added at the top of this project. It should end with a colon : Default is _INBOX:</string>
+			<key>label</key>
+			<string>Taskpaper Inbox Project</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>inbox</string>
+		</dict>
+	</array>
+	<key>version</key>
+	<string>1.2</string>
+	<key>webaddress</key>
+	<string>mildlydiverting.com</string>
+</dict>
+</plist>

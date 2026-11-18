@@ -41,3 +41,8 @@ config.local.py
 *.swo
 /md-ember-to-eagle/.claude/worktrees
 /md-scripts/laurakriefman.com-alt-text
+_assets
+_notes
+
+# ─── md-checkin personal settings ───
+md-checkin/config.js
