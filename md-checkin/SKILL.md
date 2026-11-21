@@ -1,10 +1,12 @@
 ---
 name: three-things-checkin
-description: Plan Kim's day as three things (fixed in the diary, will feel worse if it doesn't move, quick win) and keep them in her TaskPaper todo file under NEXT:, tagged @today. Spots tasks that keep slipping and offers kind options. Use when Kim says "check in", asks to plan her day, or at the end of a session.
+description: Plan Kim's day as three things (fixed in the diary, will feel worse if it doesn't move, quick win) and keep them in her TaskPaper todo file under NEXT:, each with @date(). Spots tasks that keep slipping and offers kind options. Use when Kim says "check in", asks to plan her day, or at the end of a session.
 ---
 
 <!--
 Changelog
+v1.1 (2026-11-20): No @slot or @today tags. The three questions are prompts
+  only. A NEXT: line needs just @date(). A red ! on the page means slipping.
 v1.0 (2026-11-16): First version. The todo file is the log (option C).
 -->
 
@@ -22,15 +24,16 @@ backup_dir: ~/Development/_to_delete
 
 Never guess a path. If `todo_file` can't be read, use the paste fallback below.
 
-## The three slots
+## The three questions
 
-| Slot tag | Meaning |
-|---|---|
-| `@slot(fixed)` | Fixed in the diary today |
-| `@slot(worse)` | Will feel worse if it doesn't move today |
-| `@slot(win)` | Quick win |
+Ask them to find the three things. They are prompts only: nothing about
+which question a task answered goes in the file.
 
-Optional: `@high` for the old `!` marks. Nothing else.
+1. What's fixed in the diary today?
+2. What will you feel worse about if it doesn't move today?
+3. What's a quick win?
+
+Other tags (`@high`, `@urgent`) only if Kim types them herself.
 
 ## The log is the todo file
 
@@ -38,20 +41,21 @@ At the very top of the file, above `_INBOX:`, sits a `NEXT:` heading. Real tabs.
 
 ```
 NEXT:
-	- Teaching 10am @today @slot(fixed) @date(2026-11-16)
-	- Reply to Jo's email @today @slot(worse) @date(2026-11-16)
-	- Book dentist @today @slot(win) @date(2026-11-16)
+	- Teaching 10am @date(2026-11-16)
+	- Reply to Jo's email @date(2026-11-16)
+	- Book dentist @date(2026-11-16)
 ```
 
 - `@date` is the day the task first went on NEXT. Never reset it when carried over, so slips stay visible.
 - `@done(date)` when finished.
-- No separate log. Slips are read from `@today` / `@slot` tags across the file.
+- No separate log. A task is slipping when it is on NEXT, not done, and its `@date` is before today.
+- Older lines may still carry `@today` or `@slot(...)`. Leave them as they are.
 
 ## Morning (when Kim says "check in" or asks to plan her day)
 
-1. Read `todo_file`. Look at `NEXT:`, `_INBOX:` and any line with `@today` or `@slot`.
+1. Read `todo_file`. Look at `NEXT:` and `_INBOX:`.
 2. List yesterday's undone NEXT items. Ask for each: carry on, put back, or drop to `_INBOX:`. Never decide for her.
-3. Suggest three things, one per slot, from the diary, `@high` / `@urgent` items and the inbox. Short reasons. Kim approves or changes.
+3. Suggest three things, one for each question, from the diary, `@high` / `@urgent` items and the inbox. Short reasons. Kim approves or changes.
 4. Say which items have slipped, in plain words: "Reply to Jo has been on NEXT for 3 days." Calm and factual. No guilt.
 5. For anything that has slipped two or more days, offer one or two gentle options (not all, not every day):
    - make it smaller (the first five minutes only)
@@ -74,7 +78,7 @@ Short. Ask which NEXT items got done. Mark them `@done(date)`. Ask if anything s
 
 ## Paste fallback
 
-If the file can't be reached (plain chat, no folder access), output the NEXT block in one fenced code block and end with one line: "Paste under `NEXT:` at the top of `todo.taskpaper`." For slips, ask Kim to paste the NEXT block and any recent `@today` lines.
+If the file can't be reached (plain chat, no folder access), output the NEXT block in one fenced code block and end with one line: "Paste under `NEXT:` at the top of `todo.taskpaper`." For slips, ask Kim to paste the NEXT block, or the summary from the Three Things page.
 
 ## Tone
 

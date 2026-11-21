@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <!--
-  Three Things — v2.0 (2026-11-16)
+  Three Things — v4.0 (2026-11-20)
   Changelog
+  v4.0: Simpler. No @slot or @today tags: the three questions are prompts
+        only, and a NEXT: line needs just @date(). Type any other tag
+        (@high, @urgent) into the text yourself; the mark menus are gone.
+        Right pane shows the whole todo file as it is, with @done items
+        struck through. A red ! now means only "slipping" (on NEXT: a day
+        or more). No card rules, no red headings, no Slipping or Done
+        sections, no accordion. Buttons sit above the file.
+  v3.1: Restyled from md-design-system (mildlydiverting.com): tokens from
+        default.css and 01-tokens.css. Dark theme derived from it (marked).
+  v3.0: Two panes: a form that makes NEXT: lines to paste, and the todo
+        file. Light and dark themes, with a toggle.
   v2.1: Shows the todo file path and an "Open in TaskPaper" file:// link.
         The path comes from config.js (gitignored; see config.example.js)
         because browsers never reveal a dropped file's folder.
-  v2.0: Reads your TaskPaper todo file (drop it on the page, or choose it).
-        Shows the NEXT: block, slips and recent wins. Read-only: it never
-        writes to the file and stores nothing. Works in Safari.
-        The v1 entry form and browser log are gone; the todo file is the log.
+  v2.0: Reads your TaskPaper todo file. Read-only.
   v1.0: Local page with its own form and browser storage.
   Pairs with the three-things-checkin skill (SKILL.md in this folder).
 -->
@@ -17,166 +25,332 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Three Things</title>
+<script>
+  // Set the theme before the page draws, so there is no flash.
+  (function () {
+    let t = null;
+    try { t = localStorage.getItem('three-things::theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-  :root { --primary:#bd463b; --ink:#000; --bg:#fff; --grey:#bbb; --grey-bg:#f4f4f4; }
+  /* ===================================================================
+     TOKENS — copied from md-design-system (mildlydiverting.com).
+     Names follow token-inventory.md, so this page reads like a theme.
+     Light = src/themes/default.css, values unchanged.
+     Type and spacing = src/css/01-tokens.css (Utopia, 18 → 20px base).
+     =================================================================== */
+  :root {
+    --font-body: 'Karla', sans-serif;
+    --font-mono: 'Courier New', Courier, monospace;
+    --text-sm:   clamp(0.938rem, 0.908rem + 0.149vw, 1.042rem);
+    --text-base: clamp(1.125rem, 1.089rem + 0.179vw, 1.25rem);
+    --text-md:   clamp(1.35rem,  1.307rem + 0.214vw, 1.5rem);
+    --text-2xl:  clamp(2.333rem, 2.259rem + 0.37vw,  2.592rem);
+    --space-3xs: clamp(0.281rem, 0.272rem + 0.045vw, 0.313rem);
+    --space-2xs: clamp(0.563rem, 0.545rem + 0.089vw, 0.625rem);
+    --space-xs:  clamp(0.844rem, 0.817rem + 0.134vw, 0.938rem);
+    --space-s:   clamp(1.125rem, 1.089rem + 0.179vw, 1.25rem);
+    --space-m:   clamp(1.688rem, 1.634rem + 0.268vw, 1.875rem);
+    --space-l:   clamp(2.25rem,  2.179rem + 0.357vw, 2.5rem);
+    --space-xl:  clamp(3.375rem, 3.268rem + 0.536vw, 3.75rem);
+    --radius-s: 2px;
+    --radius-m: 4px;
+    --wrapper-max: 68rem;
+    --border: 1px solid var(--color-border);
+    --transition: 200ms ease;
+    --focus-ring: 3px solid var(--color-accent);
+    --focus-ring-offset: 3px;
+  }
+  :root, [data-theme="light"] {
+    --color-bg:           #ffffff;
+    --color-surface:      #f5f5f5;
+    --color-text:         #1a1a1a;
+    --color-text-muted:   #595959;
+    --color-border:       #d4d4d0;
+    --color-accent:       #bd463b;
+    --color-accent-hover: #9c3a30;
+    --color-cta-bg:       #bd463b;
+    --color-cta-text:     #ffffff;
+    color-scheme: light;
+  }
+  /* Dark: the design system has no dark variant of default yet.
+     From the system: --color-bg = default's --color-surface-dark,
+     --color-text = default's --color-text-light, CTA unchanged.
+     DERIVED (not in the system): surface, muted, border, accent.
+     The brand red is 2.8:1 on #2b2b2b, so the accent is lightened
+     (5.5:1, AA not AAA, like default's own primary). */
+  [data-theme="dark"] {
+    --color-bg:           #2b2b2b;
+    --color-surface:      #363636; /* derived */
+    --color-text:         #ffffff;
+    --color-text-muted:   #bfbfbf; /* derived, 7.7:1 */
+    --color-border:       #4a4a4a; /* derived */
+    --color-accent:       #e48a7a; /* derived, 5.5:1 */
+    --color-accent-hover: #f0a89c; /* derived */
+    --color-cta-bg:       #bd463b;
+    --color-cta-text:     #ffffff;
+    color-scheme: dark;
+  }
+
+  /* =================================================================== GLOBAL */
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); font-family:'Karla',sans-serif; color:var(--ink); padding:32px 20px 60px; min-height:100vh; }
-  .wrap { max-width:560px; margin:0 auto; }
-  h1 { font-weight:700; font-size:2rem; letter-spacing:-0.01em; margin:0 0 4px; }
-  .sub { font-size:0.85rem; opacity:0.6; margin-bottom:28px; }
-  .card { border:1px solid var(--grey); padding:20px; margin-bottom:20px; }
-  .card h2 { font-weight:700; font-size:0.85rem; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.08em; color:var(--primary); }
-  .drop { border:2px dashed var(--grey); padding:28px 16px; text-align:center; font-size:0.9rem; }
-  .drop.over { border-color:var(--primary); background:var(--grey-bg); }
-  .drop small { display:block; opacity:0.6; margin-top:6px; }
-  button { font-family:'Karla',sans-serif; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; padding:11px 18px; cursor:pointer; border:0; background:var(--primary); color:var(--bg); margin-top:12px; }
-  button.secondary { background:transparent; color:var(--primary); border:2px solid var(--primary); padding:9px 16px; }
+  body { margin:0; background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); font-size:var(--text-base); line-height:1.5; padding:var(--space-l) var(--space-m); min-height:100vh; }
+  a { color:var(--color-accent); transition:color var(--transition); }
+  a:hover { color:var(--color-accent-hover); }
+  :focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-ring-offset); }
+  .wrap { max-width:var(--wrapper-max); margin-inline:auto; }
+
+  /* =================================================================== HEADER */
+  header { display:flex; align-items:flex-start; gap:var(--space-s); margin-block-end:var(--space-l); }
+  h1 { font-weight:700; font-size:var(--text-2xl); line-height:1.1; margin:0 0 var(--space-3xs); }
+  .sub { font-size:var(--text-sm); color:var(--color-text-muted); }
+  #themeToggle { margin-inline-start:auto; }
+
+  /* =================================================================== LAYOUT */
+  .panes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:var(--space-xl); align-items:start; }
+  @media (max-width: 54rem) { .panes { grid-template-columns:1fr; } }
+  .pane-title { font-weight:700; font-size:var(--text-md); margin:0 0 var(--space-s); }
+
+  /* =================================================================== FORM */
+  .slot-label { display:block; font-size:var(--text-sm); font-weight:500; color:var(--color-text-muted); margin:var(--space-s) 0 var(--space-3xs); }
+  .slot:first-child .slot-label { margin-block-start:0; }
+  input[type=text] { display:block; inline-size:100%; font-family:inherit; font-size:var(--text-base); padding:var(--space-2xs); border:var(--border); border-radius:var(--radius-m); background:var(--color-bg); color:var(--color-text); }
+  input[type=text]::placeholder { color:var(--color-text-muted); }
+
+  /* =================================================================== BUTTONS */
+  button { font-family:inherit; font-weight:700; font-size:var(--text-sm); text-transform:uppercase; letter-spacing:0.05em; padding:var(--space-2xs) var(--space-s); cursor:pointer; border:2px solid var(--color-cta-bg); border-radius:var(--radius-m); background:var(--color-cta-bg); color:var(--color-cta-text); transition:opacity var(--transition); }
+  button.secondary { background:transparent; color:var(--color-accent); border-color:var(--color-accent); }
   button:hover { opacity:0.85; }
-  .slot { margin-top:14px; }
-  .slot:first-of-type { margin-top:0; }
-  .slot-label { font-size:0.78rem; font-weight:500; opacity:0.75; margin-bottom:4px; }
-  .task { display:flex; gap:8px; align-items:flex-start; font-size:0.95rem; padding:2px 0; }
-  .task.done { opacity:0.4; text-decoration:line-through; }
-  .task.sub { margin-left:22px; font-size:0.85rem; }
-  .mark { display:inline-block; min-width:20px; text-align:center; background:var(--primary); color:var(--bg); font-weight:700; font-size:0.75rem; padding:0 5px; }
-  .age { font-size:0.78rem; color:var(--primary); font-weight:700; margin-left:auto; white-space:nowrap; }
-  .empty { opacity:0.5; font-size:0.85rem; }
-  .note { font-size:0.85rem; margin-top:12px; padding:10px; background:var(--grey-bg); }
-  .status { font-size:0.78rem; color:var(--primary); font-weight:500; margin-top:8px; }
-  .copy-box { white-space:pre-wrap; font-size:0.8rem; background:var(--grey-bg); border:1px solid var(--grey); padding:12px; margin-top:12px; display:none; }
-  .pathline { font-size:0.78rem; margin-top:12px; word-break:break-all; }
-  .pathline code { background:var(--grey-bg); padding:1px 4px; }
-  .pathline a { color:var(--primary); font-weight:700; }
-  .pathline .warn { color:var(--primary); font-weight:700; display:block; margin-top:4px; }
+  .buttons { display:flex; flex-wrap:wrap; gap:var(--space-2xs); margin-block-start:var(--space-s); }
+  .buttons.top { margin-block:0 var(--space-s); }
+
+  /* =================================================================== MESSAGES */
+  .note { font-size:var(--text-sm); margin-block-start:var(--space-s); padding:var(--space-2xs) var(--space-xs); background:var(--color-surface); border-radius:var(--radius-m); }
+  .note.top { margin-block:0 var(--space-s); }
+  .status { font-size:var(--text-sm); color:var(--color-accent); font-weight:500; margin-block-start:var(--space-2xs); min-height:1.2em; }
+  .copy-box { white-space:pre-wrap; tab-size:4; font-size:var(--text-sm); background:var(--color-surface); border-radius:var(--radius-m); padding:var(--space-xs); margin-block:var(--space-xs) var(--space-s); }
+  .pathline { font-size:var(--text-sm); color:var(--color-text-muted); margin:0 0 var(--space-s); word-break:break-all; }
+  .pathline code { font-family:var(--font-mono); background:var(--color-surface); padding:0 var(--space-3xs); border-radius:var(--radius-s); }
+  .pathline a { font-weight:700; }
+  .pathline .warn { color:var(--color-accent); font-weight:700; display:block; margin-block-start:var(--space-3xs); }
+
+  /* =================================================================== DROP ZONE */
+  .drop { border:2px dashed var(--color-border); border-radius:var(--radius-m); padding:var(--space-m) var(--space-s); }
+  .drop.over { border-color:var(--color-accent); background:var(--color-surface); }
+  .drop p { margin:0 0 var(--space-2xs); }
+  .drop small { display:block; font-size:var(--text-sm); color:var(--color-text-muted); margin-block-start:var(--space-2xs); }
+
+  /* =================================================================== THE FILE
+     One div per line. --d is the line's tab depth. */
+  .file { max-height:75vh; overflow:auto; }
+  .ln { display:flex; gap:var(--space-2xs); align-items:baseline; padding-inline-start:calc(var(--d, 0) * var(--space-m)); min-height:1.5em; }
+  .ln.head { font-weight:700; margin-block-start:var(--space-xs); }
+  .ln.head:first-child { margin-block-start:0; }
+  .ln.note-line { color:var(--color-text-muted); }
+  .ln .dash { color:var(--color-text-muted); }
+  .ln .tag { color:var(--color-text-muted); font-size:var(--text-sm); font-weight:400; }
+  .ln.done .tag { display:inline-block; margin-inline-start:0.3em; } /* keeps the strikethrough off tags */
+  .ln.done .txt { text-decoration:line-through; color:var(--color-text-muted); }
+  .mark { display:inline-block; min-width:1.3em; text-align:center; background:var(--color-cta-bg); color:var(--color-cta-text); font-weight:700; font-size:var(--text-sm); border-radius:var(--radius-s); }
+  .age { font-size:var(--text-sm); color:var(--color-accent); font-weight:700; margin-inline-start:auto; padding-inline-start:var(--space-s); white-space:nowrap; }
   [hidden] { display:none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Three Things</h1>
-  <div class="sub" id="todayLabel"></div>
-
-  <div class="card" id="loadCard">
-    <h2>Your todo file</h2>
-    <div class="drop" id="drop">
-      Drop <strong>todo.taskpaper</strong> here
-      <small>or</small>
-      <button type="button" id="pick">Choose file</button>
-      <input type="file" id="file" accept=".taskpaper,.md,.txt,text/plain" hidden>
-      <small>Read only. Nothing is saved or sent anywhere.</small>
+  <header>
+    <div>
+      <h1>Three Things</h1>
+      <div class="sub" id="todayLabel"></div>
     </div>
-    <div class="pathline" id="pathLoad"></div>
-    <div class="status" id="statusMsg"></div>
-  </div>
+    <button class="secondary" type="button" id="themeToggle" aria-pressed="false">Dark mode</button>
+  </header>
 
-  <div id="view" hidden>
-    <div class="pathline" id="pathView" style="margin:-8px 0 16px"></div>
-    <div class="card"><h2>Today</h2><div id="today"></div></div>
-    <div class="card" id="slipCard" hidden><h2>Slipping</h2><div id="slips"></div><div class="note" id="slipNote" hidden></div></div>
-    <div class="card"><h2>Done in the last 7 days</h2><div id="recent"></div></div>
-    <button class="secondary" type="button" id="copy">Copy summary for chat</button>
-    <button class="secondary" type="button" id="again">Load a fresh copy</button>
-    <div class="copy-box" id="copyBox"></div>
+  <div class="panes">
+    <!-- LEFT: set today's three things -->
+    <section aria-labelledby="planTitle">
+      <h2 class="pane-title" id="planTitle">Plan today</h2>
+      <div id="form"></div>
+      <div class="buttons">
+        <button type="button" id="makeLines">Copy NEXT lines</button>
+        <button class="secondary" type="button" id="clearForm">Clear</button>
+      </div>
+      <div class="status" id="formStatus" aria-live="polite"></div>
+      <div class="copy-box" id="linesBox" hidden></div>
+      <div class="note">Paste the lines under <strong>NEXT:</strong> at the top of your todo file, or say "check in" to Claude. Add a tag such as @high to the text if you want one.</div>
+    </section>
+
+    <!-- RIGHT: the todo file, as it is -->
+    <section aria-labelledby="fileTitle">
+      <h2 class="pane-title" id="fileTitle">Your todo file</h2>
+
+      <div id="loadCard">
+        <div class="drop" id="drop">
+          <p>Drop <strong>todo.taskpaper</strong> here, or</p>
+          <button type="button" id="pick">Choose file</button>
+          <input type="file" id="file" accept=".taskpaper,.md,.txt,text/plain" hidden>
+          <small>Read only. Nothing is saved or sent anywhere.</small>
+        </div>
+        <div class="pathline" id="pathLoad" style="margin-block-start:var(--space-s)"></div>
+        <div class="status" id="loadStatus"></div>
+      </div>
+
+      <div id="view" hidden>
+        <div class="buttons top">
+          <button class="secondary" type="button" id="copy">Copy summary for chat</button>
+          <button class="secondary" type="button" id="again">Load a fresh copy</button>
+        </div>
+        <div class="copy-box" id="copyBox" hidden></div>
+        <div class="pathline" id="pathView"></div>
+        <div class="note top" id="slipNote" hidden></div>
+        <div class="file" id="fileView"></div>
+      </div>
+    </section>
   </div>
 </div>
 
 <script src="config.js"></script>
 <script>
 // ---- PARSER (pure functions; no DOM) ----
-const SLOTS = [
-  ['fixed', 'Fixed in the diary today'],
-  ['worse', "Will feel worse if it doesn't move today"],
-  ['win',   'Quick win']
+// The three questions are prompts only. Nothing about them is stored.
+const PROMPTS = [
+  ['Fixed in the diary today', 'e.g. teaching 10am'],
+  ["Will feel worse if it doesn't move today", "e.g. reply to Jo's email"],
+  ['Quick win', 'e.g. book dentist']
 ];
+const TAG_RE = /(^|\s)@([A-Za-z][\w-]*)(?:\(([^)]*)\))?/g;
 
-function parseTags(line) {
+function parseTags(body) {
   const tags = {};
-  let text = line;
-  const re = /\s@([A-Za-z][\w-]*)(?:\(([^)]*)\))?/g;
   let m;
-  while ((m = re.exec(' ' + line)) !== null) tags[m[1]] = m[2] === undefined ? true : m[2];
-  text = (' ' + line).replace(re, '').trim();
-  return { tags, text };
+  TAG_RE.lastIndex = 0;
+  while ((m = TAG_RE.exec(body)) !== null) tags[m[2]] = m[3] === undefined ? true : m[3];
+  return { tags, text: body.replace(TAG_RE, '').trim() };
 }
 
-function parseItem(raw) {
-  const body = raw.replace(/^\t+/, '').replace(/^-\s+/, '');
-  const { tags, text } = parseTags(body);
+// One line of the file.
+function parseLine(line, inNext) {
+  const depth = line.match(/^\t*/)[0].length;
+  const body = line.slice(depth);
+  const isTask = /^-\s/.test(body);
+  const isHead = !isTask && /:(\s+@.*)?$/.test(body.trim());
+  const { tags, text } = parseTags(isTask ? body.replace(/^-\s+/, '') : body);
   return {
-    text, tags,
-    slot: typeof tags.slot === 'string' ? tags.slot : null,
+    depth, isTask, isHead, text, tags,
+    blank: !body.trim(),
     date: typeof tags.date === 'string' ? tags.date : null,
     done: tags.done !== undefined,
-    doneDate: typeof tags.done === 'string' ? tags.done : null,
-    mark: tags.urgent ? '!!' : tags.high ? '!' : '',
-    children: []
+    onNext: inNext && depth === 1 && isTask
   };
 }
 
-// Returns { next: [items with children], recentDone: [items] }
-function parseFile(text, todayISO) {
-  const lines = text.split(/\r?\n/);
-  const next = [];
-  const recentDone = [];
-  let inNext = false, current = null;
-  const cutoff = addDays(todayISO, -7);
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const depth = (line.match(/^\t*/)[0]).length;
-    if (depth === 0) { inNext = /^NEXT:/.test(line); current = null; continue; }
-    if (inNext) {
-      if (depth === 1) { current = parseItem(line); next.push(current); }
-      else if (current) current.children.push(parseItem(line));
-    }
-    if (/@slot\(/.test(line) && /@done/.test(line)) {
-      const it = parseItem(line);
-      if (it.doneDate && it.doneDate >= cutoff && !(inNext && depth === 1)) recentDone.push(it);
-    }
-  }
-  return { next, recentDone };
+// Every line, in order. NEXT: is the top-level heading of that name.
+function parseFile(text) {
+  let inNext = false;
+  return text.split(/\r?\n/).map(raw => {
+    if (/^\S/.test(raw)) inNext = /^NEXT:/.test(raw);
+    return Object.assign(parseLine(raw, inNext), { raw });
+  });
 }
 
 function dayNumber(iso) { const [y, m, d] = iso.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
-function addDays(iso, n) { const t = new Date((dayNumber(iso) + n) * 86400000); return t.toISOString().slice(0, 10); }
 function daysOn(item, todayISO) { return item.date ? dayNumber(todayISO) - dayNumber(item.date) : 0; }
+function plural(n) { return n + ' day' + (n === 1 ? '' : 's'); }
+function isSlipping(item, todayISO) { return item.onNext && !item.done && daysOn(item, todayISO) >= 1; }
 
-function buildSummary(parsed, todayISO) {
-  let t = 'Three things, ' + todayISO + '\n';
-  for (const [key, label] of SLOTS) {
-    const items = parsed.next.filter(i => i.slot === key);
-    t += '\n' + label + ':\n';
-    if (!items.length) t += '  (nothing set)\n';
-    for (const i of items) {
-      const age = daysOn(i, todayISO);
-      t += '  ' + (i.mark ? i.mark + ' ' : '- ') + i.text + ' [' + (i.done ? 'done' : 'not done') + (!i.done && age > 0 ? ', on NEXT ' + age + ' day' + (age > 1 ? 's' : '') : '') + ']\n';
-    }
+function buildSummary(lines, todayISO) {
+  const next = lines.filter(l => l.onNext);
+  let t = 'Three things, ' + todayISO + '\n\n';
+  if (!next.length) return t + '(nothing on NEXT)\n';
+  for (const i of next) {
+    const n = daysOn(i, todayISO);
+    t += '  ' + (isSlipping(i, todayISO) ? '! ' : '- ') + i.text +
+         ' [' + (i.done ? 'done' : 'not done') + (!i.done && n > 0 ? ', on NEXT ' + plural(n) : '') + ']\n';
   }
-  const slips = parsed.next.filter(i => !i.done && daysOn(i, todayISO) >= 1);
-  if (slips.length) { t += '\nSlipping:\n'; slips.forEach(i => t += '  ' + i.text + ' (' + daysOn(i, todayISO) + ' days)\n'); }
   return t;
+}
+
+// One TaskPaper line for NEXT:, real tab first. Only @date is added.
+function nextLine(text, todayISO) {
+  return '\t- ' + text.trim() + ' @date(' + todayISO + ')';
 }
 // ---- END PARSER ----
 
 // ---- PAGE ----
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const store = {
+  get(k) { try { return localStorage.getItem('three-things::' + k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem('three-things::' + k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('three-things::' + k); } catch (e) {} }
+};
 function todayISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 const TODAY = todayISO();
 $('todayLabel').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
-function taskHTML(i, sub) {
-  const age = !i.done && daysOn(i, TODAY) >= 1 ? '<span class="age">' + daysOn(i, TODAY) + ' day' + (daysOn(i, TODAY) > 1 ? 's' : '') + '</span>' : '';
-  return '<div class="task' + (i.done ? ' done' : '') + (sub ? ' sub' : '') + '">' +
-    (i.mark ? '<span class="mark">' + i.mark + '</span>' : '') +
-    '<span>' + esc(i.text) + '</span>' + age + '</div>';
+// Theme toggle
+function showTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  $('themeToggle').textContent = dark ? 'Light mode' : 'Dark mode';
+  $('themeToggle').setAttribute('aria-pressed', String(dark));
 }
+$('themeToggle').onclick = () => {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  store.set('theme', t);
+  showTheme();
+};
+showTheme();
 
-let parsed = null;
+let lines = null;
 
-// Path line. Browsers only reveal a dropped file's name, never its folder,
+// ---- LEFT: form ----
+$('form').innerHTML = PROMPTS.map(([label, ph], n) =>
+  '<div class="slot"><label class="slot-label" for="t' + n + '">' + label + '</label>' +
+  '<input type="text" id="t' + n + '" placeholder="' + esc(ph) + '"></div>'
+).join('');
+const inputs = PROMPTS.map((_, n) => $('t' + n));
+
+function saveDraft() { store.set('draft', JSON.stringify({ date: TODAY, text: inputs.map(i => i.value) })); }
+(function loadDraft() {
+  let d = null;
+  try { d = JSON.parse(store.get('draft')); } catch (e) {}
+  if (d && d.date === TODAY && Array.isArray(d.text)) inputs.forEach((i, n) => i.value = d.text[n] || '');
+})();
+inputs.forEach(i => i.addEventListener('input', saveDraft));
+
+$('makeLines').onclick = () => {
+  const onNext = lines ? lines.filter(l => l.onNext).map(l => l.text.toLowerCase()) : [];
+  const out = [], skipped = [];
+  for (const i of inputs) {
+    const t = i.value.trim();
+    if (!t) continue;
+    if (onNext.includes(parseTags(t).text.toLowerCase())) { skipped.push(t); continue; }
+    out.push(nextLine(t, TODAY));
+  }
+  const box = $('linesBox');
+  if (!out.length) {
+    box.hidden = true;
+    $('formStatus').textContent = skipped.length ? 'Those are already on NEXT, so there is nothing new to paste.' : 'Write at least one thing first.';
+    return;
+  }
+  const text = out.join('\n');
+  box.textContent = text; box.hidden = false;
+  copyText(text, box, $('formStatus'), 'Copied. Paste under NEXT: in your todo file.' +
+    (skipped.length ? ' Left out (already on NEXT): ' + skipped.join(', ') + '.' : ''));
+};
+$('clearForm').onclick = () => {
+  inputs.forEach(i => i.value = '');
+  store.del('draft'); $('linesBox').hidden = true; $('formStatus').textContent = '';
+};
+
+// ---- RIGHT: todo file ----
+// Browsers only reveal a dropped file's name, never its folder,
 // so the full path comes from config.js.
 const TODO_PATH = (window.CHECKIN_CONFIG && window.CHECKIN_CONFIG.todoPath) || '';
 function pathHTML(loadedName) {
@@ -190,40 +364,40 @@ function pathHTML(loadedName) {
 }
 $('pathLoad').innerHTML = pathHTML('');
 
-function render() {
-  let html = '';
-  for (const [key, label] of SLOTS) {
-    const items = parsed.next.filter(i => i.slot === key);
-    html += '<div class="slot"><div class="slot-label">' + label + '</div>';
-    html += items.length ? items.map(i => taskHTML(i) + i.children.map(c => taskHTML(c, true)).join('')).join('') : '<div class="empty">Nothing set</div>';
-    html += '</div>';
-  }
-  const others = parsed.next.filter(i => !SLOTS.some(s => s[0] === i.slot));
-  if (others.length) html += '<div class="slot"><div class="slot-label">Also on NEXT (no slot)</div>' + others.map(i => taskHTML(i)).join('') + '</div>';
-  if (!parsed.next.length) html = '<div class="empty">No NEXT: block found. Say "check in" in Claude to set your three things.</div>';
-  $('today').innerHTML = html;
+// Text with its tags quietened.
+function withTags(s) {
+  return esc(s).replace(/(^|\s)(@[A-Za-z][\w-]*(?:\([^)]*\))?)/g, '<span class="tag">$1$2</span>');
+}
 
-  const slips = parsed.next.filter(i => !i.done && daysOn(i, TODAY) >= 1);
-  $('slipCard').hidden = !slips.length;
-  $('slips').innerHTML = slips.map(i => taskHTML(i)).join('');
-  const long = slips.some(i => daysOn(i, TODAY) >= 2);
+function lineHTML(l) {
+  if (l.blank) return '<div class="ln"></div>';
+  const style = ' style="--d:' + l.depth + '"';
+  const body = l.raw.slice(l.depth);
+  if (l.isHead) return '<div class="ln head"' + style + '><span>' + withTags(body) + '</span></div>';
+  if (!l.isTask) return '<div class="ln note-line' + (l.done ? ' done' : '') + '"' + style + '><span class="txt">' + withTags(body) + '</span></div>';
+  const slip = isSlipping(l, TODAY);
+  return '<div class="ln task' + (l.done ? ' done' : '') + '"' + style + '>' +
+    (slip ? '<span class="mark" title="Slipping">!</span>' : '<span class="dash" aria-hidden="true">–</span>') +
+    '<span class="txt">' + withTags(body.replace(/^-\s+/, '')) + '</span>' +
+    (slip ? '<span class="age">' + plural(daysOn(l, TODAY)) + '</span>' : '') + '</div>';
+}
+
+function render() {
+  $('fileView').innerHTML = lines.map(lineHTML).join('');
+  const long = lines.some(l => isSlipping(l, TODAY) && daysOn(l, TODAY) >= 2);
   $('slipNote').hidden = !long;
   if (long) $('slipNote').textContent = 'Something has been here two days or more. Options: make it smaller, ask someone for help, or do an online pomodoro with friends.';
-
-  $('recent').innerHTML = parsed.recentDone.length
-    ? parsed.recentDone.sort((a, b) => b.doneDate.localeCompare(a.doneDate)).map(i => taskHTML(i)).join('')
-    : '<div class="empty">Nothing marked done yet.</div>';
   $('view').hidden = false;
   $('loadCard').hidden = true;
 }
 
 async function loadFile(file) {
   try {
-    parsed = parseFile(await file.text(), TODAY);
+    lines = parseFile(await file.text());
     $('pathView').innerHTML = pathHTML(file.name);
     render();
   } catch (err) {
-    $('statusMsg').textContent = 'Could not read that file.';
+    $('loadStatus').textContent = 'Could not read that file.';
   }
 }
 
@@ -233,15 +407,30 @@ const drop = $('drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
-$('again').onclick = () => { $('view').hidden = true; $('loadCard').hidden = false; $('copyBox').style.display = 'none'; $('file').value = ''; };
-
-$('copy').onclick = async () => {
-  const text = buildSummary(parsed, TODAY);
-  const box = $('copyBox');
-  box.textContent = text; box.style.display = 'block';
-  try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy summary for chat', 2000); }
-  catch (err) { const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+$('again').onclick = () => {
+  $('view').hidden = true; $('loadCard').hidden = false; $('copyBox').hidden = true; $('file').value = '';
+  lines = null;
 };
+
+$('copy').onclick = () => {
+  const text = buildSummary(lines, TODAY);
+  const box = $('copyBox');
+  box.textContent = text; box.hidden = false;
+  copyText(text, box, null, '', $('copy'), 'Copy summary for chat');
+};
+
+// Copy, falling back to selecting the text so it can be copied by hand.
+async function copyText(text, box, statusEl, okMsg, btn, btnLabel) {
+  try {
+    await navigator.clipboard.writeText(text);
+    if (statusEl) statusEl.textContent = okMsg;
+    if (btn) { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = btnLabel, 2000); }
+  } catch (err) {
+    const r = document.createRange(); r.selectNodeContents(box);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    if (statusEl) statusEl.textContent = 'Select the text below and copy it.';
+  }
+}
 </script>
 </body>
 </html>
