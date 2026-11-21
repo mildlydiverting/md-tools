@@ -5,6 +5,9 @@ description: Plan Kim's day as three things (fixed in the diary, will feel worse
 
 <!--
 Changelog
+v2.1 (2026-11-21): The page (checkin-log.html v5) reads and ticks live, so
+  no fetch step. Kim can do everything on the page; the skill is for
+  talking it through.
 v2.0 (2026-11-21): Workflowy replaces TaskPaper. Three things are mirrors
   on the day's calendar page, under a "Three things" heading. Slips come
   from mirror history, not @date. All reads and writes go through
@@ -43,7 +46,6 @@ script: ~/Development/md-tools-pkim/md-checkin/wf_checkin.py
 | Need | Command |
 |---|---|
 | See today and slips | `wf_checkin.py show` |
-| Refresh the page | `wf_checkin.py fetch` |
 | New task, onto today | `wf_checkin.py add "Text" --today` |
 | New task, Inbox only | `wf_checkin.py add "Text"` |
 | Existing task onto today | `wf_checkin.py mirror ID` |
@@ -81,11 +83,11 @@ Other tags (`#high`, `#urgent`) only if Kim types them herself.
    - make it smaller (the first five minutes only)
    - ask someone for help, and offer to draft the message
    - an online pomodoro with friends (body doubling)
-6. Show the exact commands (the dry run). Wait for a yes. Then run them, then `fetch`.
+6. Show the exact commands (the dry run). Wait for a yes. Then run them. The Three Things page reads Workflowy live, so Kim just presses Refresh.
 
 ## End of session
 
-Short. Run `show`. Ask which items got done; `complete` each one. Ask if anything should carry to tomorrow; tomorrow's check-in mirrors it then, so nothing to do now. Offer to capture loose tasks to the Inbox with `add`. Show the commands, wait for a yes, run them, then `fetch`.
+Short. Run `show`. Ask which items got done; `complete` each one. Ask if anything should carry to tomorrow; tomorrow's check-in mirrors it then, so nothing to do now. Offer to capture loose tasks to the Inbox with `add`. Show the commands, wait for a yes, run them.
 
 ## Writing rules
 
@@ -96,7 +98,7 @@ Short. Run `show`. Ask which items got done; `complete` each one. Ask if anythin
 
 ## Paste fallback
 
-If the script can't run here, give Kim the commands in one fenced block to paste into Terminal, ending with `wf_checkin.py fetch`. For slips, ask her to paste the output of `show`.
+If the script can't run here, give Kim the commands in one fenced block to paste into Terminal, or point her to the Three Things page, which can do the same live. For slips, ask her to paste the output of `show`.
 
 ## Tone
 

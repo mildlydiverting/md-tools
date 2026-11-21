@@ -20,8 +20,9 @@ Options
 
 API key, first found wins:
   1. WORKFLOWY_API_KEY environment variable
-  2. macOS Keychain item named "workflowy-api":
-       security add-generic-password -a "$USER" -s workflowy-api -w
+  2. macOS Keychain item named WORKFLOWY_API_KEY (service name, or
+     account name if no service matches):
+       security add-generic-password -a "$USER" -s WORKFLOWY_API_KEY -w
 Get a key at https://workflowy.com/api-key
 
 Model
@@ -32,6 +33,7 @@ Model
   so the history stays visible.
 
 Changelog
+  v1.1 (2026-11-21): Keychain item is WORKFLOWY_API_KEY.
   v1.0 (2026-11-21): First version.
 """
 
@@ -48,10 +50,11 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-VERSION = "1.0"
+VERSION = "1.1"
 BASE = "https://workflowy.com/api/v1"
 HEADING = "Three things"      # name of the h2 under each day node
 WINDOW_DAYS = 14              # how far back to look for slips
+KEYCHAIN_NAME = "WORKFLOWY_API_KEY"
 HERE = Path(__file__).resolve().parent
 DEFAULT_OUT = HERE / "checkin-data.js"
 
@@ -113,14 +116,19 @@ def get_key():
     key = os.environ.get("WORKFLOWY_API_KEY", "").strip()
     if key:
         return key
-    try:
-        out = subprocess.run(
-            ["security", "find-generic-password", "-s", "workflowy-api", "-w"],
-            capture_output=True, text=True, check=True)
-        return out.stdout.strip()
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        sys.exit("No API key. Set WORKFLOWY_API_KEY or add a Keychain item "
-                 "called workflowy-api (see the top of this file).")
+    for flag in ("-s", "-a"):     # service name first, then account name
+        try:
+            out = subprocess.run(
+                ["security", "find-generic-password", flag, KEYCHAIN_NAME, "-w"],
+                capture_output=True, text=True, check=True)
+            if out.stdout.strip():
+                return out.stdout.strip()
+        except FileNotFoundError:
+            break                 # not a Mac
+        except subprocess.CalledProcessError:
+            continue
+    sys.exit(f"No API key. Set the WORKFLOWY_API_KEY environment variable, "
+             f"or add a Keychain item called {KEYCHAIN_NAME}.")
 
 
 # ---- Helpers -----------------------------------------------------------

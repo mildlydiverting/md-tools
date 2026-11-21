@@ -1,7 +1,8 @@
-// Copy this file to config.js (which is gitignored) and set your own path.
-// Use the full path from the root of your Mac, not ~.
-// Browsers can't tell a page which folder a dropped file came from,
-// so the page shows this path and builds its file:// link from it.
+// Copy this file to config.js (which is gitignored) and add your key.
+// The key can edit your whole Workflowy: never commit or share config.js.
+// Copy the key from Keychain with:
+//   security find-generic-password -s WORKFLOWY_API_KEY -w | pbcopy
 window.CHECKIN_CONFIG = {
-  todoPath: "/Users/YOURNAME/Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper"
+  workflowyKey: "",
+  windowDays: 14   // how far back to look for slipping tasks
 };

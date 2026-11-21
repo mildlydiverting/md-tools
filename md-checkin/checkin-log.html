@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <!--
-  Three Things — v4.0 (2026-11-20)
+  Three Things — v5.0 (2026-11-21)
   Changelog
-  v4.0: Simpler. No @slot or @today tags: the three questions are prompts
-        only, and a NEXT: line needs just @date(). Type any other tag
-        (@high, @urgent) into the text yourself; the mark menus are gone.
-        Right pane shows the whole todo file as it is, with @done items
-        struck through. A red ! now means only "slipping" (on NEXT: a day
-        or more). No card rules, no red headings, no Slipping or Done
-        sections, no accordion. Buttons sit above the file.
-  v3.1: Restyled from md-design-system (mildlydiverting.com): tokens from
-        default.css and 01-tokens.css. Dark theme derived from it (marked).
-  v3.0: Two panes: a form that makes NEXT: lines to paste, and the todo
-        file. Light and dark themes, with a toggle.
-  v2.1: Shows the todo file path and an "Open in TaskPaper" file:// link.
-        The path comes from config.js (gitignored; see config.example.js)
-        because browsers never reveal a dropped file's folder.
-  v2.0: Reads your TaskPaper todo file. Read-only.
+  v5.0: Live from Workflowy. No file to drop. Today's three things are
+        mirrors under a "Three things" heading on the day's calendar
+        page. Tick to complete, untick to reopen; both write straight to
+        Workflowy. Pick a task from a dropdown (Inbox, or still open from
+        earlier days) or type a new one: new ones go to the Inbox first,
+        then get mirrored onto today. "Take off today" removes today's
+        mirror only. Custom checkboxes and dropdowns from the tokens.
+        The API key lives in config.js (gitignored).
+  v4.0: Simpler TaskPaper version: NEXT: lines need just @date().
+  v3.1: Restyled from md-design-system (mildlydiverting.com).
+  v3.0: Two panes, light and dark themes.
+  v2.0: Read a TaskPaper todo file. Read only.
   v1.0: Local page with its own form and browser storage.
-  Pairs with the three-things-checkin skill (SKILL.md in this folder).
+  Pairs with the three-things-checkin skill and wf_checkin.py (same folder).
 -->
 <html lang="en-GB">
 <head>
@@ -40,7 +37,6 @@
 <style>
   /* ===================================================================
      TOKENS — copied from md-design-system (mildlydiverting.com).
-     Names follow token-inventory.md, so this page reads like a theme.
      Light = src/themes/default.css, values unchanged.
      Type and spacing = src/css/01-tokens.css (Utopia, 18 → 20px base).
      =================================================================== */
@@ -65,6 +61,7 @@
     --transition: 200ms ease;
     --focus-ring: 3px solid var(--color-accent);
     --focus-ring-offset: 3px;
+    --control-size: 1.5rem;   /* checkbox square; big enough to hit easily */
   }
   :root, [data-theme="light"] {
     --color-bg:           #ffffff;
@@ -78,18 +75,13 @@
     --color-cta-text:     #ffffff;
     color-scheme: light;
   }
-  /* Dark: the design system has no dark variant of default yet.
-     From the system: --color-bg = default's --color-surface-dark,
-     --color-text = default's --color-text-light, CTA unchanged.
-     DERIVED (not in the system): surface, muted, border, accent.
-     The brand red is 2.8:1 on #2b2b2b, so the accent is lightened
-     (5.5:1, AA not AAA, like default's own primary). */
+  /* Dark: derived, as in v3.1 (the design system has no dark default yet). */
   [data-theme="dark"] {
     --color-bg:           #2b2b2b;
     --color-surface:      #363636; /* derived */
     --color-text:         #ffffff;
     --color-text-muted:   #bfbfbf; /* derived, 7.7:1 */
-    --color-border:       #4a4a4a; /* derived */
+    --color-border:       #6a6a6a; /* derived; lighter than v4 so controls show */
     --color-accent:       #e48a7a; /* derived, 5.5:1 */
     --color-accent-hover: #f0a89c; /* derived */
     --color-cta-bg:       #bd463b;
@@ -104,61 +96,97 @@
   a:hover { color:var(--color-accent-hover); }
   :focus-visible { outline:var(--focus-ring); outline-offset:var(--focus-ring-offset); }
   .wrap { max-width:var(--wrapper-max); margin-inline:auto; }
+  [hidden] { display:none !important; }
 
   /* =================================================================== HEADER */
   header { display:flex; align-items:flex-start; gap:var(--space-s); margin-block-end:var(--space-l); }
   h1 { font-weight:700; font-size:var(--text-2xl); line-height:1.1; margin:0 0 var(--space-3xs); }
   .sub { font-size:var(--text-sm); color:var(--color-text-muted); }
-  #themeToggle { margin-inline-start:auto; }
+  .header-buttons { margin-inline-start:auto; display:flex; gap:var(--space-2xs); flex-wrap:wrap; justify-content:flex-end; }
 
   /* =================================================================== LAYOUT */
-  .panes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:var(--space-xl); align-items:start; }
+  .panes { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:var(--space-xl); align-items:start; }
   @media (max-width: 54rem) { .panes { grid-template-columns:1fr; } }
   .pane-title { font-weight:700; font-size:var(--text-md); margin:0 0 var(--space-s); }
+  .sub-title { font-weight:700; font-size:var(--text-base); margin:var(--space-l) 0 var(--space-2xs); }
 
   /* =================================================================== FORM */
-  .slot-label { display:block; font-size:var(--text-sm); font-weight:500; color:var(--color-text-muted); margin:var(--space-s) 0 var(--space-3xs); }
-  .slot:first-child .slot-label { margin-block-start:0; }
+  .slot { margin-block-end:var(--space-m); }
+  .slot-label { display:block; font-weight:700; margin:0 0 var(--space-2xs); }
+  .or { display:block; font-size:var(--text-sm); color:var(--color-text-muted); margin:var(--space-3xs) 0; }
   input[type=text] { display:block; inline-size:100%; font-family:inherit; font-size:var(--text-base); padding:var(--space-2xs); border:var(--border); border-radius:var(--radius-m); background:var(--color-bg); color:var(--color-text); }
   input[type=text]::placeholder { color:var(--color-text-muted); }
+  input[type=text]:hover { border-color:var(--color-text-muted); }
+
+  /* ---- Dropdown: native <select> for keyboard and screen readers,
+          redrawn to match the text inputs. Chevron drawn in CSS so it
+          follows the theme colour. */
+  .select { position:relative; display:block; }
+  .select select {
+    appearance:none; -webkit-appearance:none;
+    display:block; inline-size:100%;
+    font-family:inherit; font-size:var(--text-base); line-height:1.5;
+    padding:var(--space-2xs) calc(var(--space-2xs) * 4) var(--space-2xs) var(--space-2xs);
+    border:var(--border); border-radius:var(--radius-m);
+    background:var(--color-bg); color:var(--color-text);
+    cursor:pointer; text-overflow:ellipsis;
+  }
+  .select select:hover { border-color:var(--color-text-muted); }
+  .select::after {
+    content:""; position:absolute; pointer-events:none;
+    inset-inline-end:var(--space-xs); inset-block-start:50%;
+    inline-size:0.55em; block-size:0.55em;
+    border-inline-end:2px solid var(--color-text-muted);
+    border-block-end:2px solid var(--color-text-muted);
+    transform:translateY(-70%) rotate(45deg);
+  }
+  .select select:disabled { color:var(--color-text-muted); cursor:default; }
+  .select select option, .select select optgroup { background:var(--color-bg); color:var(--color-text); }
+
+  /* ---- Checkbox: native input, redrawn. Square, terracotta when ticked,
+          a drawn tick (no icon font). */
+  .check {
+    appearance:none; -webkit-appearance:none; margin:0; flex:none;
+    inline-size:var(--control-size); block-size:var(--control-size);
+    border:2px solid var(--color-text-muted); border-radius:var(--radius-s);
+    background:var(--color-bg); cursor:pointer; position:relative;
+    transition:background var(--transition), border-color var(--transition);
+  }
+  .check:hover { border-color:var(--color-accent); }
+  .check:checked { background:var(--color-cta-bg); border-color:var(--color-cta-bg); }
+  .check:checked::after {
+    content:""; position:absolute;
+    inset-inline-start:30%; inset-block-start:10%;
+    inline-size:32%; block-size:58%;
+    border-inline-end:3px solid var(--color-cta-text);
+    border-block-end:3px solid var(--color-cta-text);
+    transform:rotate(45deg);
+  }
+  .check:disabled { opacity:0.5; cursor:progress; }
 
   /* =================================================================== BUTTONS */
   button { font-family:inherit; font-weight:700; font-size:var(--text-sm); text-transform:uppercase; letter-spacing:0.05em; padding:var(--space-2xs) var(--space-s); cursor:pointer; border:2px solid var(--color-cta-bg); border-radius:var(--radius-m); background:var(--color-cta-bg); color:var(--color-cta-text); transition:opacity var(--transition); }
   button.secondary { background:transparent; color:var(--color-accent); border-color:var(--color-accent); }
+  button.quiet { background:transparent; border-color:transparent; color:var(--color-accent); text-transform:none; letter-spacing:0; font-weight:500; padding:var(--space-3xs) var(--space-2xs); text-decoration:underline; text-underline-offset:0.2em; }
   button:hover { opacity:0.85; }
-  .buttons { display:flex; flex-wrap:wrap; gap:var(--space-2xs); margin-block-start:var(--space-s); }
-  .buttons.top { margin-block:0 var(--space-s); }
+  button:disabled { opacity:0.5; cursor:progress; }
+  .buttons { display:flex; flex-wrap:wrap; gap:var(--space-2xs); }
 
   /* =================================================================== MESSAGES */
-  .note { font-size:var(--text-sm); margin-block-start:var(--space-s); padding:var(--space-2xs) var(--space-xs); background:var(--color-surface); border-radius:var(--radius-m); }
-  .note.top { margin-block:0 var(--space-s); }
-  .status { font-size:var(--text-sm); color:var(--color-accent); font-weight:500; margin-block-start:var(--space-2xs); min-height:1.2em; }
-  .copy-box { white-space:pre-wrap; tab-size:4; font-size:var(--text-sm); background:var(--color-surface); border-radius:var(--radius-m); padding:var(--space-xs); margin-block:var(--space-xs) var(--space-s); }
-  .pathline { font-size:var(--text-sm); color:var(--color-text-muted); margin:0 0 var(--space-s); word-break:break-all; }
-  .pathline code { font-family:var(--font-mono); background:var(--color-surface); padding:0 var(--space-3xs); border-radius:var(--radius-s); }
-  .pathline a { font-weight:700; }
-  .pathline .warn { color:var(--color-accent); font-weight:700; display:block; margin-block-start:var(--space-3xs); }
+  .note { font-size:var(--text-sm); padding:var(--space-2xs) var(--space-xs); background:var(--color-surface); border-radius:var(--radius-m); margin-block:var(--space-s); }
+  .note code { font-family:var(--font-mono); }
+  .status { font-size:var(--text-sm); color:var(--color-accent); font-weight:500; margin-block-start:var(--space-2xs); min-height:1.5em; }
+  .muted { color:var(--color-text-muted); font-size:var(--text-sm); }
 
-  /* =================================================================== DROP ZONE */
-  .drop { border:2px dashed var(--color-border); border-radius:var(--radius-m); padding:var(--space-m) var(--space-s); }
-  .drop.over { border-color:var(--color-accent); background:var(--color-surface); }
-  .drop p { margin:0 0 var(--space-2xs); }
-  .drop small { display:block; font-size:var(--text-sm); color:var(--color-text-muted); margin-block-start:var(--space-2xs); }
-
-  /* =================================================================== THE FILE
-     One div per line. --d is the line's tab depth. */
-  .file { max-height:75vh; overflow:auto; }
-  .ln { display:flex; gap:var(--space-2xs); align-items:baseline; padding-inline-start:calc(var(--d, 0) * var(--space-m)); min-height:1.5em; }
-  .ln.head { font-weight:700; margin-block-start:var(--space-xs); }
-  .ln.head:first-child { margin-block-start:0; }
-  .ln.note-line { color:var(--color-text-muted); }
-  .ln .dash { color:var(--color-text-muted); }
-  .ln .tag { color:var(--color-text-muted); font-size:var(--text-sm); font-weight:400; }
-  .ln.done .tag { display:inline-block; margin-inline-start:0.3em; } /* keeps the strikethrough off tags */
-  .ln.done .txt { text-decoration:line-through; color:var(--color-text-muted); }
-  .mark { display:inline-block; min-width:1.3em; text-align:center; background:var(--color-cta-bg); color:var(--color-cta-text); font-weight:700; font-size:var(--text-sm); border-radius:var(--radius-s); }
-  .age { font-size:var(--text-sm); color:var(--color-accent); font-weight:700; margin-inline-start:auto; padding-inline-start:var(--space-s); white-space:nowrap; }
-  [hidden] { display:none !important; }
+  /* =================================================================== TASK LISTS */
+  .tasks { list-style:none; margin:0; padding:0; }
+  .task { display:flex; align-items:flex-start; gap:var(--space-xs); padding-block:var(--space-2xs); }
+  .task label { flex:1; cursor:pointer; padding-block-start:0.05em; }
+  .task.done label { text-decoration:line-through; color:var(--color-text-muted); }
+  .task .actions { margin-inline-start:auto; display:flex; gap:var(--space-3xs); align-items:center; }
+  .mark { display:inline-block; min-width:1.4em; text-align:center; background:var(--color-cta-bg); color:var(--color-cta-text); font-weight:700; font-size:var(--text-sm); border-radius:var(--radius-s); margin-inline-end:var(--space-3xs); text-decoration:none; }
+  .age { font-size:var(--text-sm); color:var(--color-accent); font-weight:700; white-space:nowrap; }
+  .empty { color:var(--color-text-muted); padding-block:var(--space-2xs); }
 </style>
 </head>
 <body>
@@ -168,132 +196,205 @@
       <h1>Three Things</h1>
       <div class="sub" id="todayLabel"></div>
     </div>
-    <button class="secondary" type="button" id="themeToggle" aria-pressed="false">Dark mode</button>
+    <div class="header-buttons">
+      <button class="secondary" type="button" id="refresh">Refresh</button>
+      <button class="secondary" type="button" id="themeToggle" aria-pressed="false">Dark mode</button>
+    </div>
   </header>
 
-  <div class="panes">
-    <!-- LEFT: set today's three things -->
+  <div class="note" id="setup" hidden></div>
+
+  <div class="panes" id="panes">
+    <!-- LEFT: plan today -->
     <section aria-labelledby="planTitle">
       <h2 class="pane-title" id="planTitle">Plan today</h2>
       <div id="form"></div>
       <div class="buttons">
-        <button type="button" id="makeLines">Copy NEXT lines</button>
+        <button type="button" id="addToday">Add to today</button>
         <button class="secondary" type="button" id="clearForm">Clear</button>
       </div>
       <div class="status" id="formStatus" aria-live="polite"></div>
-      <div class="copy-box" id="linesBox" hidden></div>
-      <div class="note">Paste the lines under <strong>NEXT:</strong> at the top of your todo file, or say "check in" to Claude. Add a tag such as @high to the text if you want one.</div>
+      <p class="muted">New things go to your Workflowy Inbox, then appear on today's page. Add a tag such as #high to the text if you want one.</p>
     </section>
 
-    <!-- RIGHT: the todo file, as it is -->
-    <section aria-labelledby="fileTitle">
-      <h2 class="pane-title" id="fileTitle">Your todo file</h2>
+    <!-- RIGHT: today, live -->
+    <section aria-labelledby="todayTitle">
+      <h2 class="pane-title" id="todayTitle">Today</h2>
+      <ul class="tasks" id="todayList"></ul>
+      <div class="status" id="listStatus" aria-live="polite"></div>
+      <div class="note" id="slipNote" hidden></div>
 
-      <div id="loadCard">
-        <div class="drop" id="drop">
-          <p>Drop <strong>todo.taskpaper</strong> here, or</p>
-          <button type="button" id="pick">Choose file</button>
-          <input type="file" id="file" accept=".taskpaper,.md,.txt,text/plain" hidden>
-          <small>Read only. Nothing is saved or sent anywhere.</small>
-        </div>
-        <div class="pathline" id="pathLoad" style="margin-block-start:var(--space-s)"></div>
-        <div class="status" id="loadStatus"></div>
+      <div id="earlierBlock" hidden>
+        <h3 class="sub-title">Still open from earlier days</h3>
+        <ul class="tasks" id="earlierList"></ul>
       </div>
 
-      <div id="view" hidden>
-        <div class="buttons top">
-          <button class="secondary" type="button" id="copy">Copy summary for chat</button>
-          <button class="secondary" type="button" id="again">Load a fresh copy</button>
-        </div>
-        <div class="copy-box" id="copyBox" hidden></div>
-        <div class="pathline" id="pathView"></div>
-        <div class="note top" id="slipNote" hidden></div>
-        <div class="file" id="fileView"></div>
-      </div>
+      <p class="muted" id="footer"></p>
     </section>
   </div>
 </div>
 
 <script src="config.js"></script>
 <script>
-// ---- PARSER (pure functions; no DOM) ----
-// The three questions are prompts only. Nothing about them is stored.
-const PROMPTS = [
-  ['Fixed in the diary today', 'e.g. teaching 10am'],
-  ["Will feel worse if it doesn't move today", "e.g. reply to Jo's email"],
-  ['Quick win', 'e.g. book dentist']
-];
-const TAG_RE = /(^|\s)@([A-Za-z][\w-]*)(?:\(([^)]*)\))?/g;
+/* ==== LOGIC (no DOM; tested by test_checkin_page.mjs) ================ */
+const HEADING = 'Three things';
+const API = 'https://workflowy.com/api/v1';
 
-function parseTags(body) {
-  const tags = {};
-  let m;
-  TAG_RE.lastIndex = 0;
-  while ((m = TAG_RE.exec(body)) !== null) tags[m[2]] = m[3] === undefined ? true : m[3];
-  return { tags, text: body.replace(TAG_RE, '').trim() };
-}
-
-// One line of the file.
-function parseLine(line, inNext) {
-  const depth = line.match(/^\t*/)[0].length;
-  const body = line.slice(depth);
-  const isTask = /^-\s/.test(body);
-  const isHead = !isTask && /:(\s+@.*)?$/.test(body.trim());
-  const { tags, text } = parseTags(isTask ? body.replace(/^-\s+/, '') : body);
+function makeApi(key, fetchFn) {
+  const f = fetchFn || ((...a) => fetch(...a));
+  async function req(method, path, body) {
+    const r = await f(API + path, {
+      method,
+      headers: Object.assign({ Authorization: 'Bearer ' + key },
+                             body ? { 'Content-Type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (r.status === 404) { const e = new Error('not found'); e.notFound = true; throw e; }
+    if (r.status === 401) throw new Error('Workflowy says the API key is not valid.');
+    if (r.status === 429) throw new Error('Workflowy asked us to slow down. Try again in a minute.');
+    if (!r.ok) throw new Error('Workflowy error ' + r.status + '.');
+    const t = await r.text();
+    return t ? JSON.parse(t) : {};
+  }
   return {
-    depth, isTask, isHead, text, tags,
-    blank: !body.trim(),
-    date: typeof tags.date === 'string' ? tags.date : null,
-    done: tags.done !== undefined,
-    onNext: inNext && depth === 1 && isTask
+    children: id => req('GET', '/nodes?parent_id=' + encodeURIComponent(id)).then(r => r.nodes || []),
+    node: id => req('GET', '/nodes/' + encodeURIComponent(id)).then(r => r.node),
+    create: body => req('POST', '/nodes', body),
+    mirror: (id, parent) => req('POST', '/nodes/' + id + '/mirror', { parent_id: parent, position: 'bottom' }),
+    unmirror: id => req('DELETE', '/nodes/' + id + '/mirror'),
+    complete: id => req('POST', '/nodes/' + id + '/complete', {}),
+    uncomplete: id => req('POST', '/nodes/' + id + '/uncomplete', {})
   };
 }
 
-// Every line, in order. NEXT: is the top-level heading of that name.
-function parseFile(text) {
-  let inNext = false;
-  return text.split(/\r?\n/).map(raw => {
-    if (/^\S/.test(raw)) inNext = /^NEXT:/.test(raw);
-    return Object.assign(parseLine(raw, inNext), { raw });
+function isoDay(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function addDays(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return isoDay(new Date(y, m - 1, d + n));
+}
+function daysBetween(a, b) {
+  const n = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((n(b) - n(a)) / 86400000);
+}
+function plain(html) {
+  return String(html || '').replace(/<[^>]+>/g, '')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').trim();
+}
+const byPriority = (a, b) => (a.priority || 0) - (b.priority || 0);
+
+// Run fn over items, at most `limit` at once (gentle on the API).
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let i = 0;
+  async function worker() { while (i < items.length) { const n = i++; out[n] = await fn(items[n], n); } }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
+async function findHeading(api, day) {
+  let kids;
+  try { kids = await api.children(day); } catch (e) { if (e.notFound) return null; throw e; }
+  const h = kids.find(n => plain(n.name) === HEADING);
+  return h ? h.id : null;
+}
+
+// Creating the heading also creates the calendar day if it's missing.
+async function ensureHeading(api, day) {
+  return (await findHeading(api, day)) ||
+    (await api.create({ parent_id: day, name: HEADING, layoutMode: 'h2', position: 'top' })).item_id;
+}
+
+// Read the last `windowDays` of Three things, plus the Inbox.
+async function collect(api, today, windowDays) {
+  const days = [];
+  for (let i = windowDays; i >= 0; i--) days.push(addDays(today, -i));
+  const headings = await mapLimit(days, 4, d => findHeading(api, d));
+  const lists = await mapLimit(days, 4, (d, n) => headings[n] ? api.children(headings[n]) : Promise.resolve([]));
+
+  const tasks = new Map();   // origin id -> record
+  days.forEach((d, n) => {
+    lists[n].slice().sort(byPriority).forEach((child, pos) => {
+      const originId = (child.data && child.data.mirror && child.data.mirror.origin_id) || child.id;
+      let rec = tasks.get(originId);
+      if (!rec) {
+        rec = { id: originId, text: plain(child.name), done: !!child.completed, firstDate: d, dates: [], mirrors: {} };
+        tasks.set(originId, rec);
+      }
+      rec.dates.push(d);
+      rec.mirrors[d] = child.id;
+      if (d === today) rec.todayPos = pos;
+    });
   });
+
+  // The origin is the source of truth for done and text.
+  await mapLimit([...tasks.values()], 4, async rec => {
+    try {
+      const o = await api.node(rec.id);
+      if (o) { rec.done = !!o.completed; rec.text = plain(o.name) || rec.text; }
+    } catch (e) { if (!e.notFound) throw e; }
+  });
+
+  let inbox = [];
+  try { inbox = (await api.children('inbox')).filter(n => !n.completed).sort(byPriority); }
+  catch (e) { if (!e.notFound) throw e; }
+
+  const all = [...tasks.values()].map(r => Object.assign(r, {
+    daysOn: daysBetween(r.firstDate, today),
+    onToday: r.dates.includes(today)
+  }));
+  all.forEach(r => { r.slipping = !r.done && r.daysOn > 0; });
+  const onToday = new Set(all.filter(r => r.onToday).map(r => r.id));
+  return {
+    today,
+    todayItems: all.filter(r => r.onToday).sort((a, b) => a.todayPos - b.todayPos),
+    earlier: all.filter(r => !r.onToday && !r.done).sort((a, b) => b.daysOn - a.daysOn),
+    inbox: inbox.filter(n => !onToday.has(n.id)).map(n => ({ id: n.id, text: plain(n.name) }))
+  };
 }
 
-function dayNumber(iso) { const [y, m, d] = iso.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); }
-function daysOn(item, todayISO) { return item.date ? dayNumber(todayISO) - dayNumber(item.date) : 0; }
-function plural(n) { return n + ' day' + (n === 1 ? '' : 's'); }
-function isSlipping(item, todayISO) { return item.onNext && !item.done && daysOn(item, todayISO) >= 1; }
-
-function buildSummary(lines, todayISO) {
-  const next = lines.filter(l => l.onNext);
-  let t = 'Three things, ' + todayISO + '\n\n';
-  if (!next.length) return t + '(nothing on NEXT)\n';
-  for (const i of next) {
-    const n = daysOn(i, todayISO);
-    t += '  ' + (isSlipping(i, todayISO) ? '! ' : '- ') + i.text +
-         ' [' + (i.done ? 'done' : 'not done') + (!i.done && n > 0 ? ', on NEXT ' + plural(n) : '') + ']\n';
+// Add picks and new text to today. Returns { added, skipped }.
+async function addToToday(api, today, entries, onTodayIds) {
+  const added = [], skipped = [];
+  const seen = new Set(onTodayIds);
+  let heading = null;
+  for (const e of entries) {
+    let id = e.id;
+    if (!id) {
+      if (!e.text) continue;
+      id = (await api.create({ parent_id: 'inbox', name: e.text, layoutMode: 'todo', position: 'bottom' })).item_id;
+    }
+    if (seen.has(id)) { skipped.push(e.text || id); continue; }
+    heading = heading || await ensureHeading(api, today);
+    await api.mirror(id, heading);
+    seen.add(id);
+    added.push(e.text || id);
   }
-  return t;
+  return { added, skipped };
 }
 
-// One TaskPaper line for NEXT:, real tab first. Only @date is added.
-function nextLine(text, todayISO) {
-  return '\t- ' + text.trim() + ' @date(' + todayISO + ')';
-}
-// ---- END PARSER ----
-
-// ---- PAGE ----
+if (typeof module !== 'undefined') module.exports = { makeApi, collect, addToToday, ensureHeading, addDays, daysBetween, plain };
+/* ==== END LOGIC ====================================================== */
+</script>
+<script>
+/* ==== PAGE =========================================================== */
 const $ = id => document.getElementById(id);
-const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const store = {
   get(k) { try { return localStorage.getItem('three-things::' + k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem('three-things::' + k, v); } catch (e) {} },
   del(k) { try { localStorage.removeItem('three-things::' + k); } catch (e) {} }
 };
-function todayISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-const TODAY = todayISO();
+const plural = n => n + ' day' + (n === 1 ? '' : 's');
+
+const CONFIG = window.CHECKIN_CONFIG || {};
+const KEY = (CONFIG.workflowyKey || '').trim();
+const WINDOW = Number(CONFIG.windowDays) || 14;
+const TODAY = isoDay(new Date());
 $('todayLabel').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
-// Theme toggle
+// ---- Theme
 function showTheme() {
   const dark = document.documentElement.dataset.theme === 'dark';
   $('themeToggle').textContent = dark ? 'Light mode' : 'Dark mode';
@@ -307,129 +408,174 @@ $('themeToggle').onclick = () => {
 };
 showTheme();
 
-let lines = null;
+// ---- No key: explain, stop.
+if (!KEY) {
+  $('setup').hidden = false;
+  $('panes').hidden = true;
+  $('refresh').hidden = true;
+  $('setup').innerHTML = '<strong>Add your Workflowy key to start.</strong><br>' +
+    '1. In Terminal: <code>security find-generic-password -s WORKFLOWY_API_KEY -w | pbcopy</code><br>' +
+    '2. Open <code>config.js</code> in this folder and paste it as <code>workflowyKey: "…"</code><br>' +
+    '3. Reload this page.<br>' +
+    '<code>config.js</code> is gitignored. Never share it: the key can edit your whole Workflowy.';
+} else {
+  start();
+}
 
-// ---- LEFT: form ----
-$('form').innerHTML = PROMPTS.map(([label, ph], n) =>
-  '<div class="slot"><label class="slot-label" for="t' + n + '">' + label + '</label>' +
-  '<input type="text" id="t' + n + '" placeholder="' + esc(ph) + '"></div>'
-).join('');
-const inputs = PROMPTS.map((_, n) => $('t' + n));
+function start() {
+  const api = makeApi(KEY);
+  let state = null;
 
-function saveDraft() { store.set('draft', JSON.stringify({ date: TODAY, text: inputs.map(i => i.value) })); }
-(function loadDraft() {
-  let d = null;
-  try { d = JSON.parse(store.get('draft')); } catch (e) {}
-  if (d && d.date === TODAY && Array.isArray(d.text)) inputs.forEach((i, n) => i.value = d.text[n] || '');
-})();
-inputs.forEach(i => i.addEventListener('input', saveDraft));
+  // ---- Form: three prompts, each a dropdown or new text.
+  const PROMPTS = [
+    ['Fixed in the diary today', 'e.g. teaching 10am'],
+    ["Will feel worse if it doesn't move today", "e.g. reply to Jo's email"],
+    ['Quick win', 'e.g. book dentist']
+  ];
+  $('form').innerHTML = PROMPTS.map(([label, ph], n) =>
+    '<div class="slot" role="group" aria-labelledby="l' + n + '">' +
+      '<span class="slot-label" id="l' + n + '">' + esc(label) + '</span>' +
+      '<span class="select"><select id="s' + n + '" aria-label="' + esc(label) + ': pick a task"></select></span>' +
+      '<span class="or">or a new one</span>' +
+      '<input type="text" id="t' + n + '" aria-label="' + esc(label) + ': new task" placeholder="' + esc(ph) + '">' +
+    '</div>'
+  ).join('');
+  const selects = PROMPTS.map((_, n) => $('s' + n));
+  const inputs = PROMPTS.map((_, n) => $('t' + n));
 
-$('makeLines').onclick = () => {
-  const onNext = lines ? lines.filter(l => l.onNext).map(l => l.text.toLowerCase()) : [];
-  const out = [], skipped = [];
-  for (const i of inputs) {
-    const t = i.value.trim();
-    if (!t) continue;
-    if (onNext.includes(parseTags(t).text.toLowerCase())) { skipped.push(t); continue; }
-    out.push(nextLine(t, TODAY));
+  // Picking from the list clears the text box, and typing clears the pick,
+  // so each slot is clearly one or the other.
+  selects.forEach((s, n) => s.addEventListener('change', () => { if (s.value) inputs[n].value = ''; saveDraft(); }));
+  inputs.forEach((i, n) => i.addEventListener('input', () => { if (i.value) selects[n].value = ''; saveDraft(); }));
+
+  function saveDraft() {
+    store.set('draft', JSON.stringify({ date: TODAY, text: inputs.map(i => i.value), pick: selects.map(s => s.value) }));
   }
-  const box = $('linesBox');
-  if (!out.length) {
-    box.hidden = true;
-    $('formStatus').textContent = skipped.length ? 'Those are already on NEXT, so there is nothing new to paste.' : 'Write at least one thing first.';
-    return;
+  function loadDraft() {
+    let d = null;
+    try { d = JSON.parse(store.get('draft')); } catch (e) {}
+    if (!d || d.date !== TODAY) return;
+    inputs.forEach((i, n) => i.value = (d.text || [])[n] || '');
+    selects.forEach((s, n) => { const v = (d.pick || [])[n]; if (v && [...s.options].some(o => o.value === v)) s.value = v; });
   }
-  const text = out.join('\n');
-  box.textContent = text; box.hidden = false;
-  copyText(text, box, $('formStatus'), 'Copied. Paste under NEXT: in your todo file.' +
-    (skipped.length ? ' Left out (already on NEXT): ' + skipped.join(', ') + '.' : ''));
-};
-$('clearForm').onclick = () => {
-  inputs.forEach(i => i.value = '');
-  store.del('draft'); $('linesBox').hidden = true; $('formStatus').textContent = '';
-};
 
-// ---- RIGHT: todo file ----
-// Browsers only reveal a dropped file's name, never its folder,
-// so the full path comes from config.js.
-const TODO_PATH = (window.CHECKIN_CONFIG && window.CHECKIN_CONFIG.todoPath) || '';
-function pathHTML(loadedName) {
-  if (!TODO_PATH) return '<span class="warn">No path set. Copy config.example.js to config.js and add the full path to your todo file.</span>';
-  const url = 'file://' + encodeURI(TODO_PATH).replace(/#/g, '%23');
-  let h = (loadedName ? 'Reading from: ' : 'Expected file: ') + '<code>' + esc(TODO_PATH) + '</code> ' +
-          '<a href="' + url + '">Open in TaskPaper</a>';
-  const want = TODO_PATH.split('/').pop();
-  if (loadedName && loadedName !== want) h += '<span class="warn">You loaded "' + esc(loadedName) + '", not "' + esc(want) + '". The path above is from config.js, not from the file you chose.</span>';
-  return h;
-}
-$('pathLoad').innerHTML = pathHTML('');
-
-// Text with its tags quietened.
-function withTags(s) {
-  return esc(s).replace(/(^|\s)(@[A-Za-z][\w-]*(?:\([^)]*\))?)/g, '<span class="tag">$1$2</span>');
-}
-
-function lineHTML(l) {
-  if (l.blank) return '<div class="ln"></div>';
-  const style = ' style="--d:' + l.depth + '"';
-  const body = l.raw.slice(l.depth);
-  if (l.isHead) return '<div class="ln head"' + style + '><span>' + withTags(body) + '</span></div>';
-  if (!l.isTask) return '<div class="ln note-line' + (l.done ? ' done' : '') + '"' + style + '><span class="txt">' + withTags(body) + '</span></div>';
-  const slip = isSlipping(l, TODAY);
-  return '<div class="ln task' + (l.done ? ' done' : '') + '"' + style + '>' +
-    (slip ? '<span class="mark" title="Slipping">!</span>' : '<span class="dash" aria-hidden="true">–</span>') +
-    '<span class="txt">' + withTags(body.replace(/^-\s+/, '')) + '</span>' +
-    (slip ? '<span class="age">' + plural(daysOn(l, TODAY)) + '</span>' : '') + '</div>';
-}
-
-function render() {
-  $('fileView').innerHTML = lines.map(lineHTML).join('');
-  const long = lines.some(l => isSlipping(l, TODAY) && daysOn(l, TODAY) >= 2);
-  $('slipNote').hidden = !long;
-  if (long) $('slipNote').textContent = 'Something has been here two days or more. Options: make it smaller, ask someone for help, or do an online pomodoro with friends.';
-  $('view').hidden = false;
-  $('loadCard').hidden = true;
-}
-
-async function loadFile(file) {
-  try {
-    lines = parseFile(await file.text());
-    $('pathView').innerHTML = pathHTML(file.name);
-    render();
-  } catch (err) {
-    $('loadStatus').textContent = 'Could not read that file.';
+  function fillSelects() {
+    const group = (label, items) => items.length
+      ? '<optgroup label="' + esc(label) + '">' + items.map(t => '<option value="' + esc(t.id) + '">' + esc(t.text) + '</option>').join('') + '</optgroup>'
+      : '';
+    const html = '<option value="">Pick a task…</option>' +
+      group('Still open from earlier', state.earlier) + group('Inbox', state.inbox);
+    const empty = !state.earlier.length && !state.inbox.length;
+    selects.forEach(s => {
+      const keep = s.value;
+      s.innerHTML = empty ? '<option value="">Nothing open yet</option>' : html;
+      s.disabled = empty;
+      if ([...s.options].some(o => o.value === keep)) s.value = keep;
+    });
   }
-}
 
-$('pick').onclick = () => $('file').click();
-$('file').onchange = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
-const drop = $('drop');
-['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
-$('again').onclick = () => {
-  $('view').hidden = true; $('loadCard').hidden = false; $('copyBox').hidden = true; $('file').value = '';
-  lines = null;
-};
+  $('addToday').onclick = async () => {
+    const textFor = id => { for (const t of [...state.earlier, ...state.inbox]) if (t.id === id) return t.text; return id; };
+    const entries = selects.map((s, n) => s.value
+      ? { id: s.value, text: textFor(s.value) }
+      : { text: inputs[n].value.trim() }).filter(e => e.id || e.text);
+    if (!entries.length) { $('formStatus').textContent = 'Pick or write at least one thing first.'; return; }
+    busy($('addToday'), true);
+    $('formStatus').textContent = 'Adding…';
+    try {
+      const r = await addToToday(api, TODAY, entries, state.todayItems.map(t => t.id));
+      inputs.forEach(i => i.value = ''); selects.forEach(s => s.value = ''); store.del('draft');
+      $('formStatus').textContent = (r.added.length ? 'Added: ' + r.added.join(', ') + '.' : '') +
+        (r.skipped.length ? ' Already on today: ' + r.skipped.join(', ') + '.' : '');
+      await load();
+    } catch (e) {
+      $('formStatus').textContent = e.message;
+      await load();   // something may have been added before the error
+    } finally { busy($('addToday'), false); }
+  };
+  $('clearForm').onclick = () => {
+    inputs.forEach(i => i.value = ''); selects.forEach(s => s.value = '');
+    store.del('draft'); $('formStatus').textContent = '';
+  };
 
-$('copy').onclick = () => {
-  const text = buildSummary(lines, TODAY);
-  const box = $('copyBox');
-  box.textContent = text; box.hidden = false;
-  copyText(text, box, null, '', $('copy'), 'Copy summary for chat');
-};
-
-// Copy, falling back to selecting the text so it can be copied by hand.
-async function copyText(text, box, statusEl, okMsg, btn, btnLabel) {
-  try {
-    await navigator.clipboard.writeText(text);
-    if (statusEl) statusEl.textContent = okMsg;
-    if (btn) { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = btnLabel, 2000); }
-  } catch (err) {
-    const r = document.createRange(); r.selectNodeContents(box);
-    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-    if (statusEl) statusEl.textContent = 'Select the text below and copy it.';
+  // ---- Today list
+  function itemHTML(t, where) {
+    const id = 'c-' + where + '-' + t.id;
+    const slip = t.slipping;
+    let actions = '';
+    if (where === 'today' && t.mirrors[TODAY]) actions = '<button class="quiet" type="button" data-act="off" data-mirror="' + esc(t.mirrors[TODAY]) + '">Take off today</button>';
+    if (where === 'earlier') actions = '<button class="quiet" type="button" data-act="carry" data-id="' + esc(t.id) + '">Add to today</button>';
+    return '<li class="task' + (t.done ? ' done' : '') + '">' +
+      '<input class="check" type="checkbox" id="' + esc(id) + '" data-id="' + esc(t.id) + '"' + (t.done ? ' checked' : '') + '>' +
+      '<label for="' + esc(id) + '">' + (slip ? '<span class="mark" title="Slipping">!</span>' : '') + esc(t.text) + '</label>' +
+      '<span class="actions">' + (slip ? '<span class="age" title="First on ' + esc(t.firstDate) + '">' + plural(t.daysOn) + '</span>' : '') + actions + '</span>' +
+    '</li>';
   }
+
+  function render() {
+    $('todayList').innerHTML = state.todayItems.length
+      ? state.todayItems.map(t => itemHTML(t, 'today')).join('')
+      : '<li class="empty">Nothing on today yet.</li>';
+    $('earlierBlock').hidden = !state.earlier.length;
+    $('earlierList').innerHTML = state.earlier.map(t => itemHTML(t, 'earlier')).join('');
+    const long = [...state.todayItems, ...state.earlier].some(t => t.slipping && t.daysOn >= 2);
+    $('slipNote').hidden = !long;
+    if (long) $('slipNote').textContent = 'Something has been here two days or more. Options: make it smaller, ask someone for help, or do an online pomodoro with friends.';
+    $('footer').textContent = 'Inbox: ' + state.inbox.length + ' open. Updated ' +
+      new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + '.';
+    fillSelects();
+  }
+
+  // Ticks write straight away; on failure the box goes back.
+  document.addEventListener('change', async e => {
+    const box = e.target;
+    if (!box.classList || !box.classList.contains('check')) return;
+    const id = box.dataset.id, done = box.checked;
+    box.closest('.task').classList.toggle('done', done);
+    box.disabled = true;
+    try {
+      await (done ? api.complete(id) : api.uncomplete(id));
+      for (const t of [...state.todayItems, ...state.earlier]) if (t.id === id) { t.done = done; t.slipping = !done && t.daysOn > 0; }
+      $('listStatus').textContent = '';
+      render();
+    } catch (err) {
+      box.checked = !done;
+      box.closest('.task').classList.toggle('done', !done);
+      $('listStatus').textContent = err.message;
+    } finally { box.disabled = false; }
+  });
+
+  document.addEventListener('click', async e => {
+    const b = e.target.closest && e.target.closest('button[data-act]');
+    if (!b) return;
+    busy(b, true);
+    try {
+      if (b.dataset.act === 'off') await api.unmirror(b.dataset.mirror);
+      if (b.dataset.act === 'carry') await addToToday(api, TODAY, [{ id: b.dataset.id }], state.todayItems.map(t => t.id));
+      $('listStatus').textContent = '';
+      await load();
+    } catch (err) { $('listStatus').textContent = err.message; busy(b, false); }
+  });
+
+  function busy(btn, on) { btn.disabled = on; }
+
+  async function load() {
+    busy($('refresh'), true);
+    $('listStatus').textContent = state ? '' : 'Loading from Workflowy…';
+    try {
+      state = await collect(api, TODAY, WINDOW);
+      $('listStatus').textContent = '';
+      render();
+      loadDraft();
+    } catch (e) {
+      $('listStatus').textContent = e.message === 'Failed to fetch'
+        ? "Couldn't reach Workflowy. Check you're online, then Refresh."
+        : e.message;
+    } finally { busy($('refresh'), false); }
+  }
+  $('refresh').onclick = load;
+  window.addEventListener('focus', () => { if (state) load(); });  // fresh when you come back to the tab
+  load();
 }
 </script>
 </body>
