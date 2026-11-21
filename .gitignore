@@ -46,3 +46,6 @@ _notes
 
 # ─── md-checkin personal settings ───
 md-checkin/config.js
+
+# md-checkin: personal task data written by wf_checkin.py
+md-checkin/checkin-data.js

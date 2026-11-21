@@ -1,84 +1,102 @@
 ---
 name: three-things-checkin
-description: Plan Kim's day as three things (fixed in the diary, will feel worse if it doesn't move, quick win) and keep them in her TaskPaper todo file under NEXT:, each with @date(). Spots tasks that keep slipping and offers kind options. Use when Kim says "check in", asks to plan her day, or at the end of a session.
+description: Plan Kim's day as three things (fixed in the diary, will feel worse if it doesn't move, quick win), kept on Workflowy's daily calendar page as mirrors of real tasks. Spots tasks that keep slipping and offers kind options. Use when Kim says "check in", asks to plan her day, or at the end of a session.
 ---
 
 <!--
 Changelog
-v1.1 (2026-11-20): No @slot or @today tags. The three questions are prompts
-  only. A NEXT: line needs just @date(). A red ! on the page means slipping.
-v1.0 (2026-11-16): First version. The todo file is the log (option C).
+v2.0 (2026-11-21): Workflowy replaces TaskPaper. Three things are mirrors
+  on the day's calendar page, under a "Three things" heading. Slips come
+  from mirror history, not @date. All reads and writes go through
+  wf_checkin.py. The TaskPaper version is v1.1 in git history.
+v1.1 (2026-11-20): No @slot or @today tags. Red ! on the page means slipping.
+v1.0 (2026-11-16): First version. The todo file is the log.
 -->
 
 # Three Things check-in
 
-## Config
-
-Edit this block to change where the log lives. Kim can also say "use X" in a
-chat to override it for that session.
+## How it's laid out in Workflowy
 
 ```
-todo_file: ~/Library/Mobile Documents/com~hogbaysoftware~TaskPaper/Documents/todo.taskpaper
-backup_dir: ~/Development/_to_delete
+Calendar
+  2026-11-21
+    Three things            (h2)
+      Reply to Jo           (mirror: the original lives in Inbox or a project)
+      Teaching 10am         (mirror)
+      Book dentist          (mirror)
 ```
 
-Never guess a path. If `todo_file` can't be read, use the paste fallback below.
+- The **original** task lives in the Inbox or a project. The day page only holds **mirrors**.
+- **Carry over** = mirror the task onto today as well. Old mirrors stay put, so the history shows.
+- **Slipping** = not done, and first mirrored before today. The days count comes from that first mirror.
+- **Done** = complete it once. Mirrors share the original's state.
+- **Drop** = remove today's mirror only. The task stays where it lives.
+
+## Tool
+
+All Workflowy changes go through the script, not by hand:
+
+```
+script: ~/Development/md-tools-pkim/md-checkin/wf_checkin.py
+```
+
+| Need | Command |
+|---|---|
+| See today and slips | `wf_checkin.py show` |
+| Refresh the page | `wf_checkin.py fetch` |
+| New task, onto today | `wf_checkin.py add "Text" --today` |
+| New task, Inbox only | `wf_checkin.py add "Text"` |
+| Existing task onto today | `wf_checkin.py mirror ID` |
+| Mark done | `wf_checkin.py complete ID` |
+| Take off today | `wf_checkin.py unmirror MIRROR_ID` |
+
+Add `--dry-run` to any command to see the change without making it.
+
+Where to run it, in order:
+1. A shell on Kim's Mac that can reach workflowy.com.
+2. Otherwise, Workflowy MCP tools, if this session has them. Mirrors need the heading's full node id, not `today`.
+3. Otherwise, use the paste fallback below.
+
+Never guess an id. Take ids from `show` output.
 
 ## The three questions
 
-Ask them to find the three things. They are prompts only: nothing about
-which question a task answered goes in the file.
+Ask them to find the three things. They are prompts only: nothing about which question a task answered is stored.
 
 1. What's fixed in the diary today?
 2. What will you feel worse about if it doesn't move today?
 3. What's a quick win?
 
-Other tags (`@high`, `@urgent`) only if Kim types them herself.
-
-## The log is the todo file
-
-At the very top of the file, above `_INBOX:`, sits a `NEXT:` heading. Real tabs.
-
-```
-NEXT:
-	- Teaching 10am @date(2026-11-16)
-	- Reply to Jo's email @date(2026-11-16)
-	- Book dentist @date(2026-11-16)
-```
-
-- `@date` is the day the task first went on NEXT. Never reset it when carried over, so slips stay visible.
-- `@done(date)` when finished.
-- No separate log. A task is slipping when it is on NEXT, not done, and its `@date` is before today.
-- Older lines may still carry `@today` or `@slot(...)`. Leave them as they are.
+Other tags (`#high`, `#urgent`) only if Kim types them herself.
 
 ## Morning (when Kim says "check in" or asks to plan her day)
 
-1. Read `todo_file`. Look at `NEXT:` and `_INBOX:`.
-2. List yesterday's undone NEXT items. Ask for each: carry on, put back, or drop to `_INBOX:`. Never decide for her.
-3. Suggest three things, one for each question, from the diary, `@high` / `@urgent` items and the inbox. Short reasons. Kim approves or changes.
-4. Say which items have slipped, in plain words: "Reply to Jo has been on NEXT for 3 days." Calm and factual. No guilt.
+1. Run `show`.
+2. List yesterday's undone items. Ask for each: carry on, put back, or drop. Never decide for her.
+   - Carry on → `mirror ID` onto today.
+   - Put back or drop → nothing to do; it stays where it lives.
+3. Suggest three things, one for each question, from the diary, `#high` / `#urgent` items and the Inbox. Short reasons. Kim approves or changes.
+4. Say which items have slipped, in plain words: "Reply to Jo has been on your three things for 3 days." Calm and factual. No guilt.
 5. For anything that has slipped two or more days, offer one or two gentle options (not all, not every day):
    - make it smaller (the first five minutes only)
    - ask someone for help, and offer to draft the message
    - an online pomodoro with friends (body doubling)
-6. Show the exact changes to the file (see Writing). Wait for a yes.
+6. Show the exact commands (the dry run). Wait for a yes. Then run them, then `fetch`.
 
 ## End of session
 
-Short. Ask which NEXT items got done. Mark them `@done(date)`. Ask if anything should carry over to tomorrow. Offer to capture loose tasks with the `taskpaper-capture` skill. Show the changes, wait for a yes.
+Short. Run `show`. Ask which items got done; `complete` each one. Ask if anything should carry to tomorrow; tomorrow's check-in mirrors it then, so nothing to do now. Offer to capture loose tasks to the Inbox with `add`. Show the commands, wait for a yes, run them, then `fetch`.
 
-## Writing to the file
+## Writing rules
 
-1. Show the changes first, as a short list of lines added, moved or tagged. This is the dry run.
-2. On yes, copy the file to `backup_dir` as `{filename}.{YYYY-MM-DD-HHMM}.bak`. Then write.
-3. A task already elsewhere in the file is moved to NEXT with its sub-items, and gets `@project(Heading)` naming where it came from (as the Archive already does). A new task is added fresh.
-4. Earlier days' `@done` items leave NEXT and go to the top of `Archive:` with their `@project` tag.
-5. Never delete a line. Never touch lines you were not asked to move. Keep every tag and sub-item.
-6. Real tabs, not spaces.
+1. Show the commands first. This is the dry run.
+2. Never delete a node. `unmirror` removes a mirror only, and only when Kim asks to take something off today.
+3. Never move or rename tasks you weren't asked about.
+4. A new task always goes to the Inbox first, then gets mirrored. Triage stays manual.
 
 ## Paste fallback
 
-If the file can't be reached (plain chat, no folder access), output the NEXT block in one fenced code block and end with one line: "Paste under `NEXT:` at the top of `todo.taskpaper`." For slips, ask Kim to paste the NEXT block, or the summary from the Three Things page.
+If the script can't run here, give Kim the commands in one fenced block to paste into Terminal, ending with `wf_checkin.py fetch`. For slips, ask her to paste the output of `show`.
 
 ## Tone
 
